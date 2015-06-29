@@ -1,5 +1,5 @@
 <snippet>
-  <content><![CDATA[
+  <content>
 #py-sacred-doorway 
 
 Py-Sacred-Doorway aims to bring simple CV based control to "The Sacred Doorway" through the use of a KinectV1,
@@ -36,6 +36,6 @@ Everybody that helped. So many people...
 
 GPLv3
 
-]]></content>
-  <tabTrigger>readme</tabTrigger>
+</content>
+<tabTrigger>readme</tabTrigger>
 </snippet>
