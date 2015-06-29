@@ -21,7 +21,9 @@ the frame with WS2812 NeoPixel strands lining the left and right edges of the ac
 arduino mega. Final production can be seen here (sorry for some foul language, I was excited!):
 
 [SD 1](https://youtu.be/poWdaNr34EA)
+
 [SD 2](https://youtu.be/1jxQJL8qlaU)
+
 [SD 3](https://youtu.be/ZUS4uXscfkQ)
 
 Processing sketches for 2014-state can be found here:
