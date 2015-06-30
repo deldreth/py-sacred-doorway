@@ -18,11 +18,14 @@ class Doorway:
 
 	def __init__ (self):
 		for s in self.sheets:
-			self.sheets[s] = Sheet(int(s))
+			self.sheets[s] = Sheet(s, self.pixels)
 
 	def put (self, sheet, red, green, blue):
-		self.sheets[sheet].set(self.pixels, red, green, blue)
+		self.sheets[sheet].set(red, green, blue)
 
-	def render (self):
+	"""
+	Write the pixel state to the client
+	"""
+	def bow (self):
 		self.client.put_pixels(self.pixels, 0)
 
