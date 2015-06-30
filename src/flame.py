@@ -3,15 +3,15 @@
 from doorway.doorway import Doorway
 from time import sleep
 from PIL import Image
-import Queue
+from collections import deque
 
 sacred = Doorway()
 sacred.bow()
 
 sleep(1)
 
-#img = Image.open("doorway/res/flames.jpeg")
-#img = img.resize((29, 2048))
+img = Image.open("doorway/res/flames.jpeg")
+img = img.resize((29, 2048))
 
 #img = Image.open("doorway/res/rainbow.jpg")
 #img = img.resize((29, 2048))
@@ -20,8 +20,8 @@ sleep(1)
 #img = Image.open("doorway/res/wedding1.jpg")
 #img = img.resize((29, 960))
 
-img = Image.open("doorway/res/water2.jpg")
-img = img.resize((29, 333))
+#img = Image.open("doorway/res/water2.jpg")
+#img = img.resize((29, 333))
 
 """
 img = Image.open("doorway/res/metatron.jpg")
@@ -30,62 +30,44 @@ img = img.resize((29, 1080))
 
 pixels = img.load()
 
+lines = []
 for y in range(img.size[1]):
 	xs = []
 	for x in range(img.size[0]):
 		xs.append(pixels[x, y])
 
 	lines.append(xs)
+	del xs
 
-#queue = Queue.Queue(7)
+deq = deque(maxlen=7)
+
+sheet = 1
 for line in lines:
-	count = 0
-	for sp in sacred.sheets[1]:
-		sacred.pixels[sp[0]] = line[count]
-		sacred.pixels[sp[1]] = line[count]
-		count += 1	
-	sacred.bow()
 
-	count = 0
-	for sp in (sacred.sheets[2]):
-		sacred.pixels[sp[0]] = line[count]
-		sacred.pixels[sp[1]] = line[count]
-		count += 1	
-	sacred.bow()
+	if sheet > 7:
+		sheet = 1
 
-	count = 0
-	for sp in sacred.sheets[3]:
-		sacred.pixels[sp[0]] = line[count]
-		sacred.pixels[sp[1]] = line[count]
-		count += 1	
-	sacred.bow()
+	deq.append(sheet)
+	sheet += 1
 
-	count = 0
-	for sp in sacred.sheets[4]:
-		sacred.pixels[sp[0]] = line[count]
-		sacred.pixels[sp[1]] = line[count]
-		count += 1	
-	sacred.bow()
+	for sheet_deq in deq:
+		count = 0
 
-	count = 0
-	for sp in sacred.sheets[5]:
-		sacred.pixels[sp[0]] = line[count]
-		sacred.pixels[sp[1]] = line[count]
-		count += 1	
-	sacred.bow()
-
-	count = 0
-	for sp in sacred.sheets[6]:
-		sacred.pixels[sp[0]] = line[count]
-		sacred.pixels[sp[1]] = line[count]
-		count += 1	
-	sacred.bow()
-
-	count = 0
-	for sp in sacred.sheets[7]:
-		sacred.pixels[sp[0]] = line[count]
-		sacred.pixels[sp[1]] = line[count]
-		count += 1	
+		for l, r in sacred.sheets[sheet_deq]:
+			sacred.pixels[l] = line[count]
+			sacred.pixels[r] = line[count]
+			count += 1
 
 	sacred.bow()
-	sleep(0.01)
+	sleep(0.05)
+
+	"""
+	for l, r in sacred.sheets[sheet]:
+		sacred.pixels[l] = line[count]
+		sacred.pixels[r] = line[count]
+		count += 1
+
+	sacred.bow()
+	"""
+
+	print deq
