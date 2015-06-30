@@ -35,14 +35,3 @@ for line in lines:
 
 		sacred.bow()
 		sleep(0.001)
-
-"""
-for line in lines:
-	for pixel in line:
-		for sp in sacred.sheets[1]:
-			sacred.pixels[sp[0]] = pixel
-			sacred.pixels[sp[1]] = pixel
-
-	sacred.bow()
-	sleep(0.01)
-"""
