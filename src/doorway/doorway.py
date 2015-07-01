@@ -33,10 +33,10 @@ class Doorway:
 		self.client.put_pixels(self.pixels, 0)
 
 	def pics(self, path = "doorway/res/"):
-		return DoorwayPics(path).__iter__()
+		return DoorwayImages(path).__iter__()
 
 
-class DoorwayPics (Doorway):
+class DoorwayImages (Doorway):
 	def __init__ (self, path = "doorway/res/"):
 		self.path = os.path.abspath(path) 
 		self.imgs = []
