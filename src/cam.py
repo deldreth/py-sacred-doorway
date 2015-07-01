@@ -9,11 +9,10 @@ display = SimpleCV.Display()
 
 sacred  = Doorway()
 
+
 while display.isNotDone():
-	image = cam.getImage().flipVertical().toRGB()
-	small = image.scale(28, 7)
-	
-	pilImage = Image.fromarray(small._numpy)
+	image    = cam.getImage()
+	pilImage = image.getPIL().rotate(90).resize((28, 7))
 	pixels   = pilImage.load()
 
 	lines = []
@@ -40,4 +39,4 @@ while display.isNotDone():
 			sheet_count += 1
 			sacred.bow()
 
-	small.save(display)
+	image.save(display)
