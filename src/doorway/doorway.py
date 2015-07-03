@@ -50,6 +50,7 @@ class Doorway (object):
 	def pics (self, path = "doorway/res/"):
 		return DoorwayImages(path).__iter__()
 
+
 class DoorwayImages (Doorway):
 	def __init__ (self, path = "doorway/res/"):
 		self.path = os.path.abspath(path) 
@@ -86,6 +87,7 @@ class DoorwayImages (Doorway):
 
 		return lines
 
+
 class DoorwayAnimations (Doorway, threading.Thread): 
 	animations = Queue() # .put({'sheets' : (n,), 'rgb' : (red, green, blue), 'direction' : 'up|down', 'sleep' : n})
 
@@ -100,7 +102,7 @@ class DoorwayAnimations (Doorway, threading.Thread):
 			
 			if animation:
 				for sheet in animation['sheets']:
-					if 'direction' in animation and animation['direction']:
+					if 'direction' in animation and animation['direction'] == 'up':
 						sheet_pixels = reversed(list(self.sheets[sheet]))
 					else:
 						sheet_pixels = list(self.sheets[sheet])

@@ -17,30 +17,32 @@ def wheel(value):
 		value -= 170
 		return (0, value * 3, 255 - value * 3)
 
-sacred.put(7, rgb = (0, 0, 255))
-sacred.bow()
+q1 = Queue()
 
-q = Queue()
-
-t1 = DoorwayAnimations(q)
-t1.animations.put({'sheets' : (1, 2), 'rgb' : (0, 255, 0), 'sleep' : 0.01})
-t1.animations.put({'sheets' : (3, 4), 'rgb' : (255, 255, 0), 'sleep' : 0.05})
-t1.animations.put({'sheets' : (5, 6), 'rgb' : (0, 255, 255), 'sleep' : 0.05})
-t1.animations.put({'sheets' : (3, 1, 5), 'rgb' : (255, 0, 0), 'direction' : 'up', 'sleep' : 0.01})
-t1.animations.put({'sheets' : (4, 2, 7), 'rgb' : (0, 255, 0), 'direction' : 'up', 'sleep' : 0.01})
+t1 = DoorwayAnimations(q1)
+t1.animations.put({'sheets' : (1, 2), 'rgb' : (255, 0, 0), 'sleep' : 0.01})
+t1.animations.put({'sheets' : (3, 4), 'rgb' : (0, 255, 0), 'sleep' : 0.01, 'direction' : 'up'})
+t1.animations.put({'sheets' : (5, 6), 'rgb' : (0, 0, 255), 'sleep' : 0.01})
 t1.start()
 t1.join()
 
-t1 = DoorwayAnimations(q)
-t1.animations.put({'sheets' : (1, 2), 'rgb' : (0, 255, 0), 'sleep' : 0.01})
-t1.animations.put({'sheets' : (3, 4), 'rgb' : (255, 255, 0), 'sleep' : 0.05})
-t1.animations.put({'sheets' : (5, 6), 'rgb' : (0, 255, 255), 'sleep' : 0.05})
-t1.animations.put({'sheets' : (3, 1, 5), 'rgb' : (255, 0, 0), 'direction' : 'up', 'sleep' : 0.1})
-t1.animations.put({'sheets' : (4, 2, 7), 'rgb' : (0, 255, 0), 'direction' : 'up', 'sleep' : 0.1})
-t1.start()
-t1.join()
+t1 = DoorwayAnimations(q1)
 
-sacred.put(6, rgb = (0, 0, 255))
+q2 = Queue()
+t2 = DoorwayAnimations(q2)
+t1.animations.put({'sheets' : (1, 2, 3, 4, 5, 6, 7), 'rgb' : (0, 0, 0), 'sleep' : 0})
+for x in range(100):
+	t1.animations.put({'sheets' : (1, 3, 5, 7), 'rgb' : wheel(x+20), 'sleep' : 0})
+	t2.animations.put({'sheets' : (2, 4, 6), 'rgb' : wheel(x+50), 'sleep' : 0})
+
+t1.start()
+t2.start()
+#t1.join()
+t2.join()
+
+sacred.put(2, rgb = (255, 255, 255))
+sacred.put(4, rgb = (255, 255, 255))
+sacred.put(6, rgb = (255, 255, 255))
 sacred.bow()
 
 # for y in range(100):
