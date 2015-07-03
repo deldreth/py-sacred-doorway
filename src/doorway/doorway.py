@@ -1,10 +1,15 @@
 from sheet import Sheet
 from PIL import Image
+from time import sleep
+from Queue import Queue
+
+from collections import deque
 
 import opc
 import os, sys
+import threading
 
-class Doorway:
+class Doorway (object):
 	sheets = {
 		1 : 0,
 		2 : 0,
@@ -15,7 +20,8 @@ class Doorway:
 		7 : 0
 	}
 
-	pixels = [(0, 0, 0) for x in range(392)]
+	pixels  = [(0, 0, 0) for x in range(392)]
+	client  = opc.Client("localhost:7890")
 
 	def __init__ (self, client = "localhost:7890"):
 		self.client = opc.Client(client)
@@ -25,16 +31,24 @@ class Doorway:
 
 		self.bow() # Go ahead and write empty state to opc
 
-	def put (self, sheet, red, green, blue):
+	def put (self, sheet, red = 0, green = 0, blue = 0, rgb = (0, 0, 0)):
+		if rgb > (0, 0, 0):
+			red, green, blue = rgb
+
 		self.sheets[sheet].set(red, green, blue)
 
 	# Write the pixel state to the client
-	def bow (self):
+	@classmethod
+	def bow (self, tsleep=0):
 		self.client.put_pixels(self.pixels, 0)
+		sleep(tsleep)
 
-	def pics(self, path = "doorway/res/"):
+	def clear (self):
+		self.pixels = [(0, 0, 0) for x in range(392)]
+		self.bow()
+
+	def pics (self, path = "doorway/res/"):
 		return DoorwayImages(path).__iter__()
-
 
 class DoorwayImages (Doorway):
 	def __init__ (self, path = "doorway/res/"):
@@ -71,3 +85,30 @@ class DoorwayImages (Doorway):
 		del self.imgs
 
 		return lines
+
+class DoorwayAnimations (Doorway, threading.Thread): 
+	animations = Queue() # .put({'sheets' : (n,), 'rgb' : (red, green, blue), 'direction' : 'up|down', 'sleep' : n})
+
+	def __init__ (self, q):
+		threading.Thread.__init__(self)
+		self.animations = q
+
+	def run (self):
+		print self.animations.qsize()
+		while True:
+			animation = self.animations.get()
+			
+			if animation:
+				for sheet in animation['sheets']:
+					if 'direction' in animation and animation['direction']:
+						sheet_pixels = reversed(list(self.sheets[sheet]))
+					else:
+						sheet_pixels = list(self.sheets[sheet])
+
+					for l, r in sheet_pixels:
+						self.pixels[l] = animation['rgb']
+						self.pixels[r] = animation['rgb']
+						self.bow(animation['sleep'])
+
+			if self.animations.qsize() == 0:
+				break

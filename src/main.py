@@ -2,77 +2,67 @@
 
 from doorway.doorway import *
 from time import sleep
+from colors import ColorWheel
+from Queue import Queue
 
-sacred = Doorway()
+sacred  = Doorway()
 
-pictures = sacred.pics()
+def wheel(value):
+	if value < 85:
+		return (value * 3, 255 - value * 3, 0)
+	elif value < 170:
+		value -= 85
+		return (255 - value * 3, 0, value * 3)
+	else:
+		value -= 170
+		return (0, value * 3, 255 - value * 3)
 
-print pictures
-for pic in pictures:
-	print pic
-# sacred.bow()
+sacred.put(7, rgb = (0, 0, 255))
+sacred.bow()
 
-# sleep(0.5)
+q = Queue()
 
-# sacred.put(1, 255, 0, 0)
-# sacred.put(2, 0, 255, 0)
-# sacred.put(3, 0, 0, 255)
-# sacred.put(4, 255, 255, 0)
-# sacred.put(5, 0, 255, 255)
-# sacred.put(6, 255, 0, 255)
-# sacred.put(7, 255, 255, 255)
-# sacred.bow()
+t1 = DoorwayAnimations(q)
+t1.animations.put({'sheets' : (1, 2), 'rgb' : (0, 255, 0), 'sleep' : 0.01})
+t1.animations.put({'sheets' : (3, 4), 'rgb' : (255, 255, 0), 'sleep' : 0.05})
+t1.animations.put({'sheets' : (5, 6), 'rgb' : (0, 255, 255), 'sleep' : 0.05})
+t1.animations.put({'sheets' : (3, 1, 5), 'rgb' : (255, 0, 0), 'direction' : 'up', 'sleep' : 0.01})
+t1.animations.put({'sheets' : (4, 2, 7), 'rgb' : (0, 255, 0), 'direction' : 'up', 'sleep' : 0.01})
+t1.start()
+t1.join()
 
-# sleep(0.5)
+t1 = DoorwayAnimations(q)
+t1.animations.put({'sheets' : (1, 2), 'rgb' : (0, 255, 0), 'sleep' : 0.01})
+t1.animations.put({'sheets' : (3, 4), 'rgb' : (255, 255, 0), 'sleep' : 0.05})
+t1.animations.put({'sheets' : (5, 6), 'rgb' : (0, 255, 255), 'sleep' : 0.05})
+t1.animations.put({'sheets' : (3, 1, 5), 'rgb' : (255, 0, 0), 'direction' : 'up', 'sleep' : 0.1})
+t1.animations.put({'sheets' : (4, 2, 7), 'rgb' : (0, 255, 0), 'direction' : 'up', 'sleep' : 0.1})
+t1.start()
+t1.join()
 
-# sacred.pixels = sacred.pixels[::-1]
-# sacred.bow()
+sacred.put(6, rgb = (0, 0, 255))
+sacred.bow()
 
-# for pixel in sacred.sheets[1]:
-# 	print pixel
-# 	sacred.pixels[pixel[0]] = (255, 0, 0)
-# 	sacred.pixels[pixel[1]] = (255, 0, 0)
-# 	sacred.bow()
-# 	sleep(0.05)
+# for y in range(100):
+# 	for x in range(256):
+# 		sacred.put(1, rgb = wheel(x))
+# 		sacred.put(2, rgb = wheel(x+10))
+# 		sacred.put(3, rgb = wheel(x+20))
+# 		sacred.put(4, rgb = wheel(x+30))
+# 		sacred.put(5, rgb = wheel(x+20))
+# 		sacred.put(6, rgb = wheel(x+10))
+# 		sacred.put(7, rgb = wheel(x))
+# 		sacred.bow(0.1)
 
-# for pixel in sacred.sheets[2]:
-# 	print pixel
-# 	sacred.pixels[pixel[0]] = (0, 255, 0)
-# 	sacred.pixels[pixel[1]] = (0, 255, 0)
-# 	sacred.bow()
-# 	sleep(0.05)
+# for sheet in sacred.sheets:
+# 	for l, r in sacred.sheets[sheet]:
+# 		sacred.pixels[l] = (255, 0, 0)
+# 		sacred.pixels[r] = (255, 0, 0)
 
-# for pixel in sacred.sheets[3]:
-# 	print pixel
-# 	sacred.pixels[pixel[0]] = (0, 0, 255)
-# 	sacred.pixels[pixel[1]] = (0, 0, 255)
-# 	sacred.bow()
-# 	sleep(0.05)
+# 		sacred.bow(0.01)
 
-# for pixel in sacred.sheets[4]:
-# 	print pixel
-# 	sacred.pixels[pixel[0]] = (255, 255, 0)
-# 	sacred.pixels[pixel[1]] = (255, 255, 0)
-# 	sacred.bow()
-# 	sleep(0.05)
+# 	for l, r in reversed(list(sacred.sheets[sheet])):
+# 		sacred.pixels[l] = (0, 255, 0)
+# 		sacred.pixels[r] = (0, 255, 0)
 
-# for pixel in sacred.sheets[5]:
-# 	print pixel
-# 	sacred.pixels[pixel[0]] = (0, 255, 255)
-# 	sacred.pixels[pixel[1]] = (0, 255, 255)
-# 	sacred.bow()
-# 	sleep(0.05)
-
-# for pixel in sacred.sheets[6]:
-# 	print pixel
-# 	sacred.pixels[pixel[0]] = (255, 0, 255)
-# 	sacred.pixels[pixel[1]] = (255, 0, 255)
-# 	sacred.bow()
-# 	sleep(0.05)
-
-# for pixel in sacred.sheets[7]:
-# 	print pixel
-# 	sacred.pixels[pixel[0]] = (255, 255, 255)
-# 	sacred.pixels[pixel[1]] = (255, 255, 255)
-# 	sacred.bow()
-# 	sleep(0.05)
+# 		sacred.bow(0.01)
