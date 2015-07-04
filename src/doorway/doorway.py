@@ -23,6 +23,7 @@ class Doorway (object):
 	pixels  = [(0, 0, 0) for x in range(392)]
 	client  = opc.Client("localhost:7890")
 
+	@classmethod
 	def __init__ (self, client = "localhost:7890"):
 		self.client = opc.Client(client)
 

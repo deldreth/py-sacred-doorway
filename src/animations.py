@@ -6,7 +6,8 @@ from doorway.doorway import *
 from time import sleep
 from colors import ColorWheel
 
-sacred  = Doorway(client="192.168.1.142:7890")
+# sacred  = Doorway(client="192.168.1.142:7890")
+sacred  = Doorway()
 
 def wheel(value):
 	if value < 85:
