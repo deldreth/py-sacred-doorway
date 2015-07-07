@@ -8,7 +8,7 @@ import multiprocessing
 
 from doorway.doorway import Doorway
 
-cam     = Camera(threaded=False) # Threaded by default, and boy if it doesn't freak everything out. Something something... multiple processes grabbing thread data at a time, wooo
+cam     = Camera(0, threaded=False, prop_set={"width":640, "height":480}) # Threaded by default, and boy if it doesn't freak everything out. Something something... multiple processes grabbing thread data at a time, wooo
 #display = Display((640, 480))
 
 sacred  = Doorway()
@@ -24,8 +24,7 @@ def proc_camera (manager_dict):
 	global sacred
 
 	def draw_camera (sacred, image):
-		image = cam.getImage()
-		pilImage = image.getPIL().rotate(90).resize((28, 7))
+		pilImage = image.rotate(90).resize((28, 7))
 		pixels   = pilImage.load()
 
 		#image.save(display)
@@ -61,8 +60,12 @@ def proc_camera (manager_dict):
 			""" It has been 5 seconds, is there still a light source? """
 
 			if manager_dict['tick'] > 5:
+				print manager_dict
 				while manager_dict['has_light']:
-					draw_camera(sacred)
+					if manager_dict['image'] != 0:
+						draw_camera(sacred, manager_dict['image'])
+					else:
+						print "No image!"
 
 		else:
 			print "No light detected!"
@@ -131,12 +134,12 @@ def thread_control ():
 			d['has_light'] = False
 			d['tick'] = 0
 
-		sleep(0.04)
+		d['image'] = img.getPIL()
+		print d
+		sleep(0.1)
 
 manager  = multiprocessing.Manager()
-d = manager.dict({'has_light' : False, 'tick' : 0})
-
-img_pipe = multiprocessing.Queue()
+d = manager.dict({'has_light' : False, 'tick' : 0, 'image' : 0})
 
 camera = multiprocessing.Process(target=proc_camera, args=(d,))
 camera.daemon = True
