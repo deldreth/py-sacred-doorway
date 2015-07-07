@@ -9,7 +9,7 @@ import multiprocessing
 from doorway.doorway import Doorway
 
 cam     = Camera(threaded=False) # Threaded by default, and boy if it doesn't freak everything out. Something something... multiple processes grabbing thread data at a time, wooo
-display = Display((640, 480))
+#display = Display((640, 480))
 
 sacred  = Doorway()
 
@@ -20,7 +20,7 @@ def proc_camera (manager_dict):
 	"""
 
 	global cam
-	global display
+	#global display
 	global sacred
 
 	def draw_camera (sacred):
@@ -28,7 +28,7 @@ def proc_camera (manager_dict):
 		pilImage = image.getPIL().rotate(90).resize((28, 7))
 		pixels   = pilImage.load()
 
-		image.save(display)
+		#image.save(display)
 		sleep(0.04) #Eh?
 		lines = []
 		for y in range(pilImage.size[1]):
@@ -134,16 +134,17 @@ def thread_control ():
 		sleep(1)
 
 manager = multiprocessing.Manager()
-
 d = manager.dict({'has_light' : False, 'tick' : 0})
 
-lights = multiprocessing.Process(target=proc_camera, args=(d,))
-lights.daemon = True
-lights.start()
+camera = multiprocessing.Process(target=proc_camera, args=(d,))
+camera.daemon = True
+camera.start()
 
 animation = multiprocessing.Process(target=proc_animation, args=(d,))
 animation.daemon = True
 animation.start()
 
-t = threading.Timer(1, thread_control)
-t.start()
+#t = threading.Timer(1, thread_control)
+#t.start()
+
+thread_control()
