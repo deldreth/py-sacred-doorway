@@ -13,7 +13,7 @@ cam     = Camera(threaded=False) # Threaded by default, and boy if it doesn't fr
 
 sacred  = Doorway()
 
-def proc_camera (manager_dict):
+def proc_camera (manager_dict, images):
 	"""
 	Camera handling PROCESS. If the manager dictionary says there is light...
 	unthreaded buffer an image from the camera and display.
@@ -23,13 +23,13 @@ def proc_camera (manager_dict):
 	#global display
 	global sacred
 
-	def draw_camera (sacred):
-		image = cam.getImage()
+	def draw_camera (sacred, image):
+		print image	
 		pilImage = image.getPIL().rotate(90).resize((28, 7))
 		pixels   = pilImage.load()
 
 		#image.save(display)
-		sleep(0.04) #Eh?
+		#sleep(0.04) #Eh?
 		lines = []
 		for y in range(pilImage.size[1]):
 			xs = []
@@ -54,7 +54,7 @@ def proc_camera (manager_dict):
 				sheet_count += 1
 				sacred.bow()
 
-	while True:
+	while True:	
 		if manager_dict['has_light']:
 			#print "Light dectected!"
 
@@ -62,7 +62,7 @@ def proc_camera (manager_dict):
 
 			if manager_dict['tick'] > 5:
 				while manager_dict['has_light']:
-					draw_camera(sacred)
+					draw_camera(sacred, images.get())
 
 		else:
 			print "No light detected!"
@@ -105,7 +105,7 @@ def proc_animation (manager_dict):
 			print "Not animating..."
 			sleep(1)
 
-def thread_control ():
+def thread_control (pipe):
 	"""
 	Toggling state THREAD... if light is detected global manager dictionay will be updated, other processes respond accordingly.
 
@@ -127,16 +127,19 @@ def thread_control ():
 		if blobs:
 			d['has_light'] = True
 			d['tick'] += 1
+			pipe.put(img)
 		else:
 			d['has_light'] = False
 			d['tick'] = 0
 
-		sleep(1)
+		sleep(0.04)
 
-manager = multiprocessing.Manager()
+manager  = multiprocessing.Manager()
 d = manager.dict({'has_light' : False, 'tick' : 0})
 
-camera = multiprocessing.Process(target=proc_camera, args=(d,))
+img_pipe = multiprocessing.Queue()
+
+camera = multiprocessing.Process(target=proc_camera, args=(d, img_pipe))
 camera.daemon = True
 camera.start()
 
@@ -147,4 +150,4 @@ animation.start()
 #t = threading.Timer(1, thread_control)
 #t.start()
 
-thread_control()
+thread_control(img_pipe)
