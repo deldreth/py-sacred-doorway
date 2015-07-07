@@ -5,8 +5,7 @@ from time import sleep
 from colors import ColorWheel
 from Queue import Queue
 
-# sacred  = Doorway()
-sacred = Doorway(client="192.168.1.142:7890")
+sacred  = Doorway()
 
 def wheel(value):
 	if value < 85:
@@ -28,13 +27,18 @@ t1.start()
 t1.join()
 
 t1 = DoorwayAnimations(q1)
+
+q2 = Queue()
+t2 = DoorwayAnimations(q2)
 t1.animations.put({'sheets' : (1, 2, 3, 4, 5, 6, 7), 'rgb' : (0, 0, 0), 'sleep' : 0})
-for x in range(256):
-	t1.animations.put({'sheets' : (1, 3, 5, 7), 'rgb' : wheel(x), 'sleep' : 0})
-	# t2.animations.put({'sheets' : (2, 4, 6), 'rgb' : wheel(x+50), 'sleep' : 0})
+for x in range(100):
+	t1.animations.put({'sheets' : (1, 3, 5, 7), 'rgb' : wheel(x+20), 'sleep' : 0})
+	t2.animations.put({'sheets' : (2, 4, 6), 'rgb' : wheel(x+50), 'sleep' : 0})
 
 t1.start()
-t1.join()
+t2.start()
+#t1.join()
+t2.join()
 
 sacred.put(2, rgb = (255, 255, 255))
 sacred.put(4, rgb = (255, 255, 255))

@@ -1,18 +1,18 @@
-from SimpleCV import *
+import SimpleCV
 from doorway.doorway import Doorway
 from time import sleep
 from collections import deque
-from PIL import Image, ImageOps
+from PIL import Image
 
-cam     = Kinect()
+cam     = SimpleCV.Camera()
 display = SimpleCV.Display()
 
 sacred  = Doorway()
 
+
 while display.isNotDone():
-	image    = cam.getDepth().invert()
+	image    = cam.getImage()
 	pilImage = image.getPIL().rotate(90).resize((28, 7))
-	# pilImage = ImageOps.colorize(pilImage, (0, 0, 255), (0, 255, 0))
 	pixels   = pilImage.load()
 
 	lines = []
@@ -35,7 +35,7 @@ while display.isNotDone():
 				sacred.pixels[l] = deq_line[pix_count]
 				sacred.pixels[r] = deq_line[pix_count]
 				pix_count += 1
-
+				
 			sheet_count += 1
 			sacred.bow()
 
