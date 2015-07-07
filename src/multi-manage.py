@@ -13,7 +13,7 @@ cam     = Camera(threaded=False) # Threaded by default, and boy if it doesn't fr
 
 sacred  = Doorway()
 
-def proc_camera (manager_dict, images):
+def proc_camera (manager_dict):
 	"""
 	Camera handling PROCESS. If the manager dictionary says there is light...
 	unthreaded buffer an image from the camera and display.
@@ -24,7 +24,7 @@ def proc_camera (manager_dict, images):
 	global sacred
 
 	def draw_camera (sacred, image):
-		print image	
+		image = cam.getImage()
 		pilImage = image.getPIL().rotate(90).resize((28, 7))
 		pixels   = pilImage.load()
 
@@ -62,7 +62,7 @@ def proc_camera (manager_dict, images):
 
 			if manager_dict['tick'] > 5:
 				while manager_dict['has_light']:
-					draw_camera(sacred, images.get())
+					draw_camera(sacred)
 
 		else:
 			print "No light detected!"
@@ -105,7 +105,7 @@ def proc_animation (manager_dict):
 			print "Not animating..."
 			sleep(1)
 
-def thread_control (pipe):
+def thread_control ():
 	"""
 	Toggling state THREAD... if light is detected global manager dictionay will be updated, other processes respond accordingly.
 
@@ -127,7 +127,6 @@ def thread_control (pipe):
 		if blobs:
 			d['has_light'] = True
 			d['tick'] += 1
-			pipe.put(img)
 		else:
 			d['has_light'] = False
 			d['tick'] = 0
@@ -139,7 +138,7 @@ d = manager.dict({'has_light' : False, 'tick' : 0})
 
 img_pipe = multiprocessing.Queue()
 
-camera = multiprocessing.Process(target=proc_camera, args=(d, img_pipe))
+camera = multiprocessing.Process(target=proc_camera, args=(d,))
 camera.daemon = True
 camera.start()
 
@@ -150,4 +149,4 @@ animation.start()
 #t = threading.Timer(1, thread_control)
 #t.start()
 
-thread_control(img_pipe)
+thread_control()
