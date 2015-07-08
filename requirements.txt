@@ -1,0 +1,8 @@
+#install with "sudo pip -r install requirements.txt"
+numpy
+scipy
+PIL
+ipython
+svgwrite
+SimpleCV
+pygame==1.9.1release

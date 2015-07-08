@@ -5,7 +5,10 @@
 Py-Sacred-Doorway aims to bring simple CV based control to "The Sacred Doorway" through the use of a KinectV1,
 raspberry pi 2 B, and fadecandy NeoPixel controllers. 
 
+[Videos of Development Progress](https://www.youtube.com/playlist?list=PLGxNYpiwnl8WbpT4YQmWQo3IXhWxgW8jh)
+
 Previous state of the project can be seen in the history section.
+
 
 ## History
 

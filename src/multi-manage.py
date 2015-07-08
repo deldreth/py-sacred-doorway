@@ -1,7 +1,9 @@
+#!/usr/bin/python
+
 from SimpleCV import *
 from SimpleCV.Display import *
 from collections import deque
-from time import sleep
+from time import sleep, time
 from PIL import Image, ImageOps
 
 import multiprocessing
@@ -9,7 +11,7 @@ import multiprocessing
 from doorway.doorway import Doorway
 
 cam     = Camera(0, threaded=False, prop_set={"width":640, "height":480}) # Threaded by default, and boy if it doesn't freak everything out. Something something... multiple processes grabbing thread data at a time, wooo
-#display = Display((640, 480))
+display = Display((640, 480))
 
 sacred  = Doorway()
 
@@ -18,9 +20,7 @@ def proc_camera (manager_dict):
 	Camera handling PROCESS. If the manager dictionary says there is light...
 	unthreaded buffer an image from the camera and display.
 	"""
-
 	global cam
-	#global display
 	global sacred
 
 	def draw_camera (sacred, image):
@@ -53,23 +53,20 @@ def proc_camera (manager_dict):
 				sheet_count += 1
 				sacred.bow()
 
-	while True:	
-		if manager_dict['has_light']:
-			#print "Light dectected!"
-
+	while True:
+		if (manager_dict['has_light'] and time() - manager_dict['cam_timer'] >= 5) or (not manager_dict['cam_timer'] and time() - manager_dict['ani_timer'] < 5):
 			""" It has been 5 seconds, is there still a light source? """
-
-			if manager_dict['tick'] > 5:
-				print manager_dict
-				while manager_dict['has_light']:
-					if manager_dict['image'] != 0:
-						draw_camera(sacred, manager_dict['image'])
-					else:
-						print "No image!"
+			if manager_dict['image'] != 0:
+				draw_camera(sacred, manager_dict['image'])
+			else:
+				print "No image!"
 
 		else:
-			print "No light detected!"
+			print "No camera."
 			sleep(1)
+
+
+
 
 def proc_animation (manager_dict):
 
@@ -91,7 +88,6 @@ def proc_animation (manager_dict):
 
 	def wheel(value):
 		""" Given 0-255, make an rgb color """
-
 		if value < 85:
 			return (value * 3, 255 - value * 3, 0)
 		elif value < 170:
@@ -102,13 +98,27 @@ def proc_animation (manager_dict):
 			return (0, value * 3, 255 - value * 3)
 
 	while True:
-		if not manager_dict['has_light']:
+		if (not manager_dict['has_light'] and time() - manager_dict['ani_timer'] >= 5) or (not manager_dict['ani_timer'] and time() - manager_dict['cam_timer'] < 5):
 			draw_animation(sacred)
 		else:
-			print "Not animating..."
+			print "No animation."
 			sleep(1)
 
-def thread_control ():
+
+
+
+def wheel(value):
+	""" Given 0-255, make an rgb color """
+	if value < 85:
+		return (value * 3, 255 - value * 3, 0)
+	elif value < 170:
+		value -= 85
+		return (255 - value * 3, 0, value * 3)
+	else:
+		value -= 170
+		return (0, value * 3, 255 - value * 3)
+
+def thread_control (d):
 	"""
 	Toggling state THREAD... if light is detected global manager dictionay will be updated, other processes respond accordingly.
 
@@ -116,30 +126,53 @@ def thread_control ():
 	"""
 
 	global cam
-	global d
 
+	x = 0
 	while True:
 		img = cam.getImage()
 
-		hls = img.toHLS()
-		h, l, s = img.splitChannels()
+		h, l, s = img.toHLS().splitChannels()
 		l = l.threshold(200)
 
 		blobs = l.findBlobs(150, minsize=200)
 
 		if blobs:
+			mask = SimpleCV.Image(img.size())
+
+			count = 1
+			for blob in blobs:
+				if count > 2:
+					continue
+				mask.drawCircle(blob.centroid(), 75, color=wheel(x), thickness=-1)
+				x += 10
+
+				count += 1
+
+			mask = mask.applyLayers()
+			mask = mask.flipHorizontal()
+			mask.save(display)
+
+			d['image'] = mask.getPIL()
+
 			d['has_light'] = True
-			d['tick'] += 1
+			d['ani_timer'] = 0
+
+			if not d['cam_timer']:
+				d['cam_timer'] = time()
 		else:
 			d['has_light'] = False
-			d['tick'] = 0
+			d['cam_timer'] = 0
 
-		d['image'] = img.getPIL()
-		print d
-		sleep(0.1)
+			if not d['ani_timer']:
+				d['ani_timer'] = time()
+
+		if x > 200:
+			x = 0
+
+		sleep(1/30)
 
 manager  = multiprocessing.Manager()
-d = manager.dict({'has_light' : False, 'tick' : 0, 'image' : 0})
+d = manager.dict({'has_light' : False, 'image' : 0, 'cam_timer' : 0, 'ani_timer' : 5})
 
 camera = multiprocessing.Process(target=proc_camera, args=(d,))
 camera.daemon = True
@@ -149,7 +182,4 @@ animation = multiprocessing.Process(target=proc_animation, args=(d,))
 animation.daemon = True
 animation.start()
 
-#t = threading.Timer(1, thread_control)
-#t.start()
-
-thread_control()
+thread_control(d)
