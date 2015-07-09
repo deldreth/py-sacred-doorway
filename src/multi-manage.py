@@ -4,7 +4,7 @@ from SimpleCV import *
 from SimpleCV.Display import *
 from collections import deque
 from time import sleep, time
-from PIL import Image, ImageOps
+from PIL import Image
 
 import multiprocessing
 
@@ -20,10 +20,27 @@ def proc_camera (manager_dict):
 	Camera handling PROCESS. If the manager dictionary says there is light...
 	unthreaded buffer an image from the camera and display.
 	"""
-	global cam
 	global sacred
 
 	def draw_camera (sacred, image):
+		# Process transition animation
+		if not manager_dict['has_light']:
+			sacred.put(2, rgb=(0, 0, 0))
+			sacred.put(3, rgb=(0, 0, 0))
+			sacred.put(4, rgb=(0, 0, 0))
+			sacred.put(5, rgb=(0, 0, 0))
+			sacred.put(6, rgb=(0, 0, 0))
+			sacred.put(7, rgb=(0, 0, 0))
+
+			start = time()
+			while time() - start <= 3:
+				sacred.put(1, rgb=(255, 255, 255))
+				sacred.bow(0.5)
+				sacred.put(1, rgb=(0, 0, 0))
+				sacred.bow(0.5)
+
+		 	return
+
 		pilImage = image.rotate(90).resize((28, 7))
 		pixels   = pilImage.load()
 
@@ -54,7 +71,7 @@ def proc_camera (manager_dict):
 				sacred.bow()
 
 	while True:
-		if (manager_dict['has_light'] and time() - manager_dict['cam_timer'] >= 5) or (not manager_dict['cam_timer'] and time() - manager_dict['ani_timer'] < 5):
+		if manager_dict['has_light'] and time() - manager_dict['cam_timer'] >= 5:
 			""" It has been 5 seconds, is there still a light source? """
 			if manager_dict['image'] != 0:
 				draw_camera(sacred, manager_dict['image'])
@@ -74,31 +91,35 @@ def proc_animation (manager_dict):
 
 	def draw_animation (sacred):
 		for x in range(256):
+			# Process transition animation
 			if manager_dict['has_light']:
-				return
+				sacred.put(2, rgb=(0, 0, 0))
+				sacred.put(3, rgb=(0, 0, 0))
+				sacred.put(4, rgb=(0, 0, 0))
+				sacred.put(5, rgb=(0, 0, 0))
+				sacred.put(6, rgb=(0, 0, 0))
+				sacred.put(7, rgb=(0, 0, 0))
 
-			sacred.put(1, rgb = wheel(x))
-			sacred.put(2, rgb = wheel(x+10))
-			sacred.put(3, rgb = wheel(x+20))
-			sacred.put(4, rgb = wheel(x+30))
-			sacred.put(5, rgb = wheel(x+20))
-			sacred.put(6, rgb = wheel(x+10))
-			sacred.put(7, rgb = wheel(x))
+				start = time()
+				while time() - start <= 3:
+					sacred.put(1, rgb=(255, 255, 255))
+					sacred.bow(0.5)
+					sacred.put(1, rgb=(0, 0, 0))
+					sacred.bow(0.5)
+
+			 	return
+
+			sacred.put(1, rgb = Doorway.color_wheel(x))
+			sacred.put(2, rgb = Doorway.color_wheel(x+10))
+			sacred.put(3, rgb = Doorway.color_wheel(x+20))
+			sacred.put(4, rgb = Doorway.color_wheel(x+30))
+			sacred.put(5, rgb = Doorway.color_wheel(x+20))
+			sacred.put(6, rgb = Doorway.color_wheel(x+10))
+			sacred.put(7, rgb = Doorway.color_wheel(x))
 			sacred.bow(0.01)
 
-	def wheel(value):
-		""" Given 0-255, make an rgb color """
-		if value < 85:
-			return (value * 3, 255 - value * 3, 0)
-		elif value < 170:
-			value -= 85
-			return (255 - value * 3, 0, value * 3)
-		else:
-			value -= 170
-			return (0, value * 3, 255 - value * 3)
-
 	while True:
-		if (not manager_dict['has_light'] and time() - manager_dict['ani_timer'] >= 5) or (not manager_dict['ani_timer'] and time() - manager_dict['cam_timer'] < 5):
+		if not manager_dict['has_light'] and time() - manager_dict['ani_timer'] >= 5:
 			draw_animation(sacred)
 		else:
 			print "No animation."
@@ -106,17 +127,6 @@ def proc_animation (manager_dict):
 
 
 
-
-def wheel(value):
-	""" Given 0-255, make an rgb color """
-	if value < 85:
-		return (value * 3, 255 - value * 3, 0)
-	elif value < 170:
-		value -= 85
-		return (255 - value * 3, 0, value * 3)
-	else:
-		value -= 170
-		return (0, value * 3, 255 - value * 3)
 
 def thread_control (d):
 	"""
@@ -143,8 +153,8 @@ def thread_control (d):
 			for blob in blobs:
 				if count > 2:
 					continue
-				mask.drawCircle(blob.centroid(), 75, color=wheel(x), thickness=-1)
-				x += 10
+				mask.drawCircle(blob.centroid(), 75, color=Doorway.color_wheel(x), thickness=-1)
+				x += 1
 
 				count += 1
 
@@ -166,7 +176,7 @@ def thread_control (d):
 			if not d['ani_timer']:
 				d['ani_timer'] = time()
 
-		if x > 200:
+		if x > 250:
 			x = 0
 
 		sleep(1/30)

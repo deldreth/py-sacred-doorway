@@ -50,6 +50,18 @@ class Doorway (object):
 	def pics (self, path = "doorway/res/"):
 		return DoorwayImages(path).__iter__()
 
+	@classmethod
+	def color_wheel(self, value):
+		""" Given 0-255, make an rgb color """
+		if value < 85:
+			return (value * 3, 255 - value * 3, 0)
+		elif value < 170:
+			value -= 85
+			return (255 - value * 3, 0, value * 3)
+		else:
+			value -= 170
+			return (0, value * 3, 255 - value * 3)	
+
 
 class DoorwayImages (Doorway):
 	def __init__ (self, path = "doorway/res/"):
