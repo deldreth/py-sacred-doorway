@@ -10,8 +10,8 @@ import multiprocessing
 
 from doorway.doorway import Doorway
 
-cam     = Camera(0, threaded=False, prop_set={"width":640, "height":480}) # Threaded by default, and boy if it doesn't freak everything out. Something something... multiple processes grabbing thread data at a time, wooo
-display = Display((640, 480))
+cam     = Camera(1, threaded=False, prop_set={"width":128, "height":96}) # Threaded by default, and boy if it doesn't freak everything out. Something something... multiple processes grabbing thread data at a time, wooo
+# display = Display((640, 480))
 
 sacred  = Doorway()
 
@@ -68,7 +68,7 @@ def proc_camera (manager_dict):
 					pix_count += 1
 
 				sheet_count += 1
-				sacred.bow()
+			sacred.bow(0)
 
 	while True:
 		if manager_dict['has_light'] and time() - manager_dict['cam_timer'] >= 5:
@@ -139,13 +139,14 @@ def thread_control (d):
 
 	x = 0
 	while True:
-		img = cam.getImage()
+		img = cam.getImage().flipVertical()
 
 		h, l, s = img.toHLS().splitChannels()
-		l = l.threshold(200)
+		l = l.threshold(150)
 
-		blobs = l.findBlobs(150, minsize=200)
+		# blobs = l.findBlobs(150, minsize=5)
 
+		blobs = l.findBlobs(minsize=2)
 		if blobs:
 			mask = SimpleCV.Image(img.size())
 
@@ -153,14 +154,18 @@ def thread_control (d):
 			for blob in blobs:
 				if count > 2:
 					continue
-				mask.drawCircle(blob.centroid(), 75, color=Doorway.color_wheel(x), thickness=-1)
-				x += 1
+				cx, cy = blob.centroid()
+
+				mask.drawCircle((cx, cy), 8, color=Doorway.color_wheel(x), thickness=-1)
+				mask.drawCircle((cx + 20, cy), 8, color=Doorway.color_wheel(x), thickness=-1)
+				mask.drawCircle((cx - 20, cy), 8, color=Doorway.color_wheel(x), thickness=-1)
+				x += 2
 
 				count += 1
 
 			mask = mask.applyLayers()
 			mask = mask.flipHorizontal()
-			mask.save(display)
+			# mask.save(display)
 
 			d['image'] = mask.getPIL()
 
