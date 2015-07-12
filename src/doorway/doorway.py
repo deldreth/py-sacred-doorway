@@ -1,13 +1,12 @@
 from sheet import Sheet
+
 from PIL import Image
 from time import sleep, time
-from Queue import Queue
-
 from collections import deque
 
 import opc
 import os, sys
-import threading
+import random
 
 class Doorway (object):
 	sheets = {
@@ -20,6 +19,8 @@ class Doorway (object):
 		7 : 0
 	}
 
+	gamma = bytearray(256)
+
 	# pixels  = [(0, 0, 0) for x in range(392)]
 	#client  = opc.Client("localhost:7890")
 
@@ -29,6 +30,8 @@ class Doorway (object):
 
 		for s in self.sheets:
 			self.sheets[s] = Sheet(s, self.pixels)
+
+		self.gamma = self.gamma_table()
 
 		self.bow() # Go ahead and write empty state to opc
 
@@ -47,24 +50,6 @@ class Doorway (object):
 		self.pixels = [(0, 0, 0) for x in range(392)]
 		self.bow()
 
-	def pics (self, path = "doorway/res/"):
-		# imgs = DoorwayImages(path).__iter__()
-		deq  = deque(maxlen=7)
-
-		for line in DoorwayImages(path).__iter__():
-			deq.append(line)
-			sheet_count = 1
-
-			for deq_line in deq:
-				pix_count = 0
-				for l,r in self.sheets[sheet_count]:
-					self.pixels[l] = deq_line[pix_count]
-					self.pixels[r] = deq_line[pix_count]
-					pix_count += 1
-
-				sheet_count += 1
-			self.bow(1/15)
-
 	def get_sheets(self):
 		return self.sheets
 
@@ -75,8 +60,12 @@ class Doorway (object):
 		self.pixels[index] = value;
 
 	@classmethod
-	def color_wheel(self, value):
-		""" Given 0-255, make an rgb color """
+	def rand_color (self):
+		return (random.randrange(255), random.randrange(255), random.randrange(255))
+
+	@classmethod
+	def nog_color_wheel(self, value):
+		""" Given 0-255, make an rgb color without gamma correction """
 		if value < 85:
 			return (value * 3, 255 - value * 3, 0)
 		elif value < 170:
@@ -86,44 +75,23 @@ class Doorway (object):
 			value -= 170
 			return (0, value * 3, 255 - value * 3)
 
+	@classmethod
+	def color_wheel(self, value):
+		""" Given 0-255, make an rgb color with gamma correction """
+		if value < 85:
+			return (self.gamma[value * 3], self.gamma[255 - value * 3], 0)
+		elif value < 170:
+			value -= 85
+			return (self.gamma[255 - value * 3], 0, self.gamma[value * 3])
+		else:
+			value -= 170
+			return (0, self.gamma[value * 3], self.gamma[255 - value * 3])
 
+	def gamma_table (self):
+		for i in range(256):
+			Doorway.gamma[i] = int(pow(float(i) / 255.0, 2.7) * 255.0 + 0.5)
 
-class DoorwayImages (Doorway):
-	def __init__ (self, path = "doorway/res/"):
-		self.path = os.path.abspath(path)
-		self.imgs = []
-		self.deq  = deque(maxlen = 7)
-
-		for pic in sorted(os.listdir(self.path)):
-			if os.path.isfile(path+pic):
-				img = Image.open(path+pic)
-				img = img.resize((28, img.size[1])) # Scale width down to 28 px but leave height alone
-				self.imgs.append(img)
-
-				del img # Since we only really care about the pixel data, no sense leaving this around
-
-		self.pixels = self.__pixelize() # We don't really care about the raw image data, just its pixels
-
-	def __iter__ (self):
-		return iter(self.pixels)
-
-
-	def __pixelize(self):
-		""" Returns a list of pixel data from self.imags """
-		lines = []
-		for img in self.imgs:
-			pixels = img.load()
-			for y in range(img.size[1]):
-				xs = []
-				for x in range(img.size[0]):
-					xs.append(pixels[x, y])
-
-				lines.append(xs)
-				del xs
-
-		del self.imgs
-
-		return lines
+		return Doorway.gamma
 
 
 
@@ -165,7 +133,7 @@ class DoorwayEffects (Doorway):
 				self.bow(tsleep)
 
 	def strobe_BtoF (self, times=10, tsleep=0.01, color1=(255, 255, 255), color2=(0, 0, 0)):
-		for sheet in reversed(range(1,7)):
+		for sheet in reversed(range(1,8)):
 			for n in range(times):
 				if not self.renderable:
 					return True
@@ -262,30 +230,109 @@ class DoorwayEffects (Doorway):
 				self.pixels[l] = color
 				self.bow(tsleep)
 
+	def swipe_up (self, color=(255, 255, 255), tsleep=0.05):
+		dims = []
 
+		for sheet in self.sheets:
+			dims.append(self.sheets[sheet].dimension())
 
-class DoorwayAnimations (Doorway, threading.Thread):
-	animations = Queue() # .put({'sheets' : (n,), 'rgb' : (red, green, blue), 'direction' : 'up|down', 'sleep' : n})
+		for pixel in range(28):
+			for dim in dims:
+				bl = dim['bl'] - pixel - 1
+				br = dim['br'] - pixel - 1
+				self.pixels[bl] = color
+				self.pixels[br] = color
+			
+			self.bow(tsleep)
 
-	def __init__ (self, q):
-		threading.Thread.__init__(self)
-		self.animations = q
+	def swipe_down (self, color=(255, 255, 255), tsleep=0.05):
+		dims = []
 
-	def run (self):
-		while True:
-			animation = self.animations.get()
+		for sheet in self.sheets:
+			dims.append(self.sheets[sheet].dimension())
 
-			if animation:
-				for sheet in animation['sheets']:
-					if 'direction' in animation and animation['direction'] == 'up':
-						sheet_pixels = reversed(list(self.sheets[sheet]))
-					else:
-						sheet_pixels = list(self.sheets[sheet])
+		for pixel in range(28):
+			for dim in dims:
+				tl = dim['tl'] + pixel
+				tr = dim['tr'] + pixel
+				self.pixels[tl] = color
+				self.pixels[tr] = color
+			
+			self.bow(tsleep)
 
-					for l, r in sheet_pixels:
-						self.pixels[l] = animation['rgb']
-						self.pixels[r] = animation['rgb']
-						self.bow(animation['sleep'])
+	def images (self, path, tsleep=0.01):
+		path = os.path.abspath(path)
+		imgs = []
 
-			if self.animations.qsize() == 0:
-				break
+		for pic in sorted(os.listdir(path)):
+			if os.path.isfile(path+'/'+pic):
+				img = Image.open(path+'/'+pic)
+				img = img.resize((28, img.size[1])) # Scale width down to 28 px but leave height alone
+				#img = img.resize((28, 28))
+				imgs.append(img)
+
+				del img # Since we only really care about the pixel data, no sense leaving this around
+
+		lines = self.__pixelize(imgs)
+
+		deq  = deque(maxlen = 7)
+		for line in lines:
+			deq.append(line)
+			sheet_count = 7
+
+			for deq_line in deq:
+				pix_count = 0
+				for l,r in self.sheets[sheet_count]:
+					if not self.renderable:
+						return True
+
+					self.pixels[l] = deq_line[pix_count]
+					self.pixels[r] = deq_line[pix_count]
+					pix_count += 1
+
+				sheet_count -= 1
+			self.bow(tsleep)
+
+	def picture (self, path, tsleep=(0.01)):
+		path = os.path.abspath(path)
+
+		if os.path.isfile(path):
+			img = Image.open(path)
+			img = img.resize((28,28))
+
+			lines = self.__pixelize([img])
+
+			deq  = deque(maxlen = 7)
+			for line in lines:
+				deq.append(line)
+				sheet_count = 7
+
+				for deq_line in deq:
+					pix_count = 0
+					for l,r in self.sheets[sheet_count]:
+						if not self.renderable:
+							return True
+
+						self.pixels[l] = deq_line[pix_count]
+						self.pixels[r] = deq_line[pix_count]
+						pix_count += 1
+
+					sheet_count -= 1
+				self.bow(tsleep)
+
+	def __pixelize(self, images):
+		""" Returns a list of pixel data """
+		lines = []
+		for img in images:
+			pixels = img.load()
+			for y in range(img.size[1]):
+				xs = []
+				for x in range(img.size[0]):
+					xs.append(pixels[x, y])
+
+				lines.append(xs)
+				del xs
+
+		del images
+
+		return lines

@@ -39,10 +39,7 @@ class DoorwayCase (unittest.TestCase):
 			self.assertEqual(doorway.pixels[r], (0, 0, 0))
 
 	def test_pics (self):
-		doorway = Doorway()
-		images = doorway.pics("doorway/res/tests/") # One white 28x28 jpg
-
-		self.assertEqual(hasattr(images, '__iter__'), True)
+		images = DoorwayImages("doorway/res/tests/")
 
 		for image in images:
 			self.assertEqual(len(image), 28)

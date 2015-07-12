@@ -13,7 +13,7 @@ from multiprocessing.managers import BaseManager
 from doorway.doorway import Doorway, DoorwayEffects
 
 cam = Camera(0, prop_set={"width":128, "height":96}) # Threaded by default, and boy if it doesn't freak everything out. Something something... multiple processes grabbing thread data at a time, wooo
-# display = Display((640, 480))
+display = Display((640, 480))
 
 def proc_camera (manager_dict, sacred):
 	"""
@@ -50,12 +50,11 @@ def proc_camera (manager_dict, sacred):
 			sacred.bow(0)
 
 	while True:
-		if manager_dict['has_light'] and time() - manager_dict['cam_timer'] >= 5:
+		if manager_dict['has_light']:
 			""" It has been 5 seconds, is there still a light source? """
 			sacred.set_renderable(False)
 			if manager_dict['image'] != 0:
 				draw_camera(sacred, manager_dict['image'])
-			else:
 		else:
 			sacred.set_renderable(True)
 			sleep(1)
@@ -66,7 +65,17 @@ def proc_camera (manager_dict, sacred):
 def proc_animation (manager_dict, sacred):
 	where = [0]
 
-	presentation = [
+	""" 
+	p - a list that contains effects for the presentation state
+	check DoorwayEffects for a list of functions 
+	"""
+	p = [
+		{'images' : ['doorway/res/chakras/', 0.01]},
+		{'images' : ['doorway/res/chakras/vectors/', 0.01]},
+		{'images' : ['doorway/res/stripes/colorfuls/', 0.01]},
+		{'images' : ['doorway/res/circles/', 0.01]},
+		{'images' : ['doorway/res/geometric/', 0.01]},
+		{'images' : ['doorway/res/stripes/', 0.01]},
 		{'rainbow_FtoB' : [ 0.01 ] },
 		{'rainbow_BtoF' : [ 0.01 ] },
 		{'wipe_down' : [ 1 ] },
@@ -79,22 +88,49 @@ def proc_animation (manager_dict, sacred):
 		{'strobe_FtoB' : [] },
 		]
 
-	for _ in range(2):
-		presentation.append({'strobe_rainbow_FtoB' : []})
-		presentation.append({'strobe_rainbow_BtoF' : []})
+	[p.append({'images' : ['doorway/res/elements/water/', 0.05]}) for _ in range(1)]
+	[p.append({'images' : ['doorway/res/elements/fire/', 0.05]}) for _ in range(1)]
 
-	for _ in range(2):
-		presentation.append({'rainbow_FtoB' : []})
-		presentation.append({'rainbow_BtoF' : []})
+	[p.append({'picture' : ['doorway/res/circles/colorfuls/{0}.jpg'.format(x), 0.02]}) for x in range(1,8)]
 
-	random.shuffle(presentation)
+	[p.append({'swipe_down' : [Doorway.rand_color()]}) for _ in range(5)]
+	[p.append({'swipe_up' : [Doorway.rand_color()]}) for _ in range(5)]
+
+	# for _ in range(20):
+	# 	p.append({'wipe_down' : [random.randrange(1,8), (random.randrange(255), random.randrange(255), random.randrange(255))]})
+	# 	p.append({'wipe_up' : [random.randrange(1,8), (random.randrange(255), random.randrange(255), random.randrange(255))]})
+
+	[p.append({'picture' : ['doorway/res/chakras/{0}.jpg'.format(x), 0.1]})            for x in range(1, 8)]
+	[p.append({'picture' : ['doorway/res/chakras/vectors/{0}.jpg'.format(x), 0.1]})    for x in range(8)]
+	[p.append({'picture' : ['doorway/res/circles/{0}.jpg'.format(x), 0.05]})           for x in range(1,10)]
+	[p.append({'picture' : ['doorway/res/circles/colorfuls/{0}.jpg'.format(x), 0.02]}) for x in range(1,8)]
+	[p.append({'picture' : ['doorway/res/stripes/{0}.jpg'.format(x), 0.01]})           for x in range(1,9)]
+	[p.append({'picture' : ['doorway/res/stripes/colorfuls/{0}.jpg'.format(x), 0.01]}) for x in range(1,6)]
+
+	for _ in range(5):
+		p.append({'strobe_FtoB' : [5, 0.01, 
+			(random.randrange(255), random.randrange(255), random.randrange(255)), 
+			(random.randrange(255), random.randrange(255), random.randrange(255))]})
+		p.append({'strobe_BtoF' : [5, 0.01, 
+			(random.randrange(255), random.randrange(255), random.randrange(255)), 
+			(random.randrange(255), random.randrange(255), random.randrange(255))]})
+	
+	# for _ in range(2):
+	# 	p.append({'strobe_rainbow_FtoB' : []})
+	# 	p.append({'strobe_rainbow_BtoF' : []})
+
+	# for _ in range(2):
+	# 	p.append({'rainbow_FtoB' : [0.01]})
+	# 	p.append({'rainbow_BtoF' : [0.01]})
+
+	random.shuffle(p)
 
 	def draw_animation (sacred):
-		if where[0] == len(presentation) - 1:
-			random.shuffle(presentation)
+		if where[0] == len(p) - 1:
+			random.shuffle(p)
 			where[0] = 0
 
-		for i, x in enumerate(presentation):
+		for i, x in enumerate(p):
 			if i < where[0]:
 				continue
 
@@ -103,10 +139,8 @@ def proc_animation (manager_dict, sacred):
 				if getattr(sacred, key)(*val):
 					return
 
-		#sacred.pics(path="Doorwayrway/res/chakras/")
-
 	while True:
-		if not manager_dict['has_light'] and time() - manager_dict['ani_timer'] >= 5:
+		if not manager_dict['has_light']:
 			draw_animation(sacred)
 		else:
 			sleep(1)
@@ -122,60 +156,60 @@ def thread_control (d):
 
 	global cam
 
-	x = 0
+	x = 1
 	while True:
 		img = cam.getImage().flipVertical()
 
 		h, l, s = img.toHLS().splitChannels()
-		l = l.threshold(150)
+		l = l.threshold(200)
 
 		# blobs = l.findBlobs(150, minsize=5) # For a capture, like, 640 x 480
 
-		blobs = l.findBlobs(minsize=2)
+		blobs = l.findBlobs(minsize=5)
 		if blobs:
 			mask = SimpleCV.Image(img.size())
 
-			count = 1
 			for blob in blobs:
-				if count > 2:
-					continue
 				cx, cy = blob.centroid()
-
-				mask.drawCircle((cx, cy), 8, color=Doorway.color_wheel(x), thickness=-1)
-				mask.drawCircle((cx + 20, cy), 8, color=Doorway.color_wheel(x), thickness=-1)
-				mask.drawCircle((cx - 20, cy), 8, color=Doorway.color_wheel(x), thickness=-1)
-				x += 2
-
-				count += 1
+				# mask.drawRectangle(cx-20, cy-30, 20, 20, color=Doorway.color_wheel(x+20), width=0)
+				# mask.drawRectangle(cx, cy-40, 20, 40, color=Doorway.color_wheel(x), width=0)
+				# mask.drawRectangle(cx+20, cy-30, 20, 20, color=Doorway.color_wheel(x+20), width=0)
+				mask.drawCircle((cx, cy), 15, color=Doorway.nog_color_wheel(x), thickness=-1)
+				# mask.drawCircle((cx + 20, cy), 10, color=Doorway.color_wheel(x+5), thickness=-1)
+				# mask.drawCircle((cx - 20, cy), 10, color=Doorway.color_wheel(x+10), thickness=-1)
+				# mask.drawCircle((cx, cy+10), 10, color=Doorway.color_wheel(x+15), thickness=-1)
+				# mask.drawCircle((cx, cy-10), 10, color=Doorway.color_wheel(x+20), thickness=-1)
+			x += 1
 
 			mask = mask.applyLayers()
 			mask = mask.flipHorizontal()
-			# mask.save(display)
+			mask.save(display)
 
 			d['image'] = mask.getPIL()
 
 			d['has_light'] = True
-			d['ani_timer'] = 0
+			# d['ani_timer'] = 0
 
-			if not d['cam_timer']:
-				d['cam_timer'] = time()
+			# if not d['cam_timer']:
+			# 	d['cam_timer'] = time()
+			sleep(0.01)
 		else:
 			d['has_light'] = False
-			d['cam_timer'] = 0
+			# d['cam_timer'] = 0
 
-			if not d['ani_timer']:
-				d['ani_timer'] = time()
+			# if not d['ani_timer']:
+			# 	d['ani_timer'] = time()
 			sleep(1)
 
-		if x > 250:
-			x = 0
-
-		sleep(1/30)
+		if x > 230:
+			x = 1
 
 bm = BaseManager()
 bm.register('DoorwayEffects', DoorwayEffects)
 bm.start()
 sacred = bm.DoorwayEffects()
+
+# sleep(10)
 
 manager  = multiprocessing.Manager()
 d = manager.dict({'has_light' : False, 'image' : 0, 'cam_timer' : 0, 'ani_timer' : 5})
