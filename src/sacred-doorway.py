@@ -13,7 +13,7 @@ from multiprocessing.managers import BaseManager
 from doorway.doorway import Doorway, DoorwayEffects
 
 cam = Camera(0, prop_set={"width":128, "height":96}) # Threaded by default, and boy if it doesn't freak everything out. Something something... multiple processes grabbing thread data at a time, wooo
-display = Display((640, 480))
+#display = Display((640, 480))
 
 def proc_camera (manager_dict, sacred):
 	"""
@@ -158,42 +158,48 @@ def thread_control (d):
 
 	x = 1
 	while True:
-		img = cam.getImage().flipVertical()
+		blobs = 0
 
-		h, l, s = img.toHLS().splitChannels()
-		l = l.threshold(200)
+		try:
+			img = cam.getImage().flipVertical()
 
-		# blobs = l.findBlobs(150, minsize=5) # For a capture, like, 640 x 480
+			h, l, s = img.toHLS().splitChannels()
+			l = l.threshold(200)
 
-		blobs = l.findBlobs(minsize=5)
-		if blobs:
-			mask = SimpleCV.Image(img.size())
+			# blobs = l.findBlobs(150, minsize=5) # For a capture, like, 640 x 480
 
-			for blob in blobs:
-				cx, cy = blob.centroid()
-				# mask.drawRectangle(cx-20, cy-30, 20, 20, color=Doorway.color_wheel(x+20), width=0)
-				# mask.drawRectangle(cx, cy-40, 20, 40, color=Doorway.color_wheel(x), width=0)
-				# mask.drawRectangle(cx+20, cy-30, 20, 20, color=Doorway.color_wheel(x+20), width=0)
-				mask.drawCircle((cx, cy), 15, color=Doorway.nog_color_wheel(x), thickness=-1)
-				# mask.drawCircle((cx + 20, cy), 10, color=Doorway.color_wheel(x+5), thickness=-1)
-				# mask.drawCircle((cx - 20, cy), 10, color=Doorway.color_wheel(x+10), thickness=-1)
-				# mask.drawCircle((cx, cy+10), 10, color=Doorway.color_wheel(x+15), thickness=-1)
-				# mask.drawCircle((cx, cy-10), 10, color=Doorway.color_wheel(x+20), thickness=-1)
-			x += 1
+			blobs = l.findBlobs(minsize=5)
+			if blobs:
+				mask = SimpleCV.Image(img.size())
 
-			mask = mask.applyLayers()
-			mask = mask.flipHorizontal()
-			mask.save(display)
+				for blob in blobs:
+					cx, cy = blob.centroid()
+					# mask.drawRectangle(cx-20, cy-30, 20, 20, color=Doorway.color_wheel(x+20), width=0)
+					# mask.drawRectangle(cx, cy-40, 20, 40, color=Doorway.color_wheel(x), width=0)
+					# mask.drawRectangle(cx+20, cy-30, 20, 20, color=Doorway.color_wheel(x+20), width=0)
+					mask.drawCircle((cx, cy), 15, color=Doorway.nog_color_wheel(x), thickness=-1)
+					# mask.drawCircle((cx + 20, cy), 10, color=Doorway.color_wheel(x+5), thickness=-1)
+					# mask.drawCircle((cx - 20, cy), 10, color=Doorway.color_wheel(x+10), thickness=-1)
+					# mask.drawCircle((cx, cy+10), 10, color=Doorway.color_wheel(x+15), thickness=-1)
+					# mask.drawCircle((cx, cy-10), 10, color=Doorway.color_wheel(x+20), thickness=-1)
+				x += 1
 
-			d['image'] = mask.getPIL()
+				mask = mask.applyLayers()
+				mask = mask.flipHorizontal()
+				#mask.save(display)
 
-			d['has_light'] = True
-			# d['ani_timer'] = 0
+				d['image'] = mask.getPIL()
 
-			# if not d['cam_timer']:
-			# 	d['cam_timer'] = time()
-			sleep(0.01)
-		else:
+				d['has_light'] = True
+				# d['ani_timer'] = 0
+
+				# if not d['cam_timer']:
+				# 	d['cam_timer'] = time()
+				sleep(0.01)
+		except:
+			pass
+		
+		if not blobs:
 			d['has_light'] = False
 			# d['cam_timer'] = 0
 
@@ -208,8 +214,6 @@ bm = BaseManager()
 bm.register('DoorwayEffects', DoorwayEffects)
 bm.start()
 sacred = bm.DoorwayEffects()
-
-# sleep(10)
 
 manager  = multiprocessing.Manager()
 d = manager.dict({'has_light' : False, 'image' : 0, 'cam_timer' : 0, 'ani_timer' : 5})
