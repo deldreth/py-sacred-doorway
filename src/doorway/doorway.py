@@ -44,7 +44,6 @@ class Doorway (object):
 	# Write the pixel state to the client
 	def bow (self, tsleep=0):
 		self.client.put_pixels(self.pixels, 0)
-		sleep(tsleep)
 
 	def clear (self):
 		self.pixels = [(0, 0, 0) for x in range(392)]
@@ -69,7 +68,10 @@ class Doorway (object):
 		return self.pixels
 
 	def set_pixel(self, index, value):
-		self.pixels[index] = value;
+		self.pixels[index] = value
+	
+	def set_pixels(self, pixels):
+		self.pixels = pixels
 
 	@classmethod
 	def rand_color (self):

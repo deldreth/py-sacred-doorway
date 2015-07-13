@@ -23,7 +23,7 @@ def proc_camera (manager_dict, sacred):
 	unthreaded buffer an image from the camera and display.
 	"""
 
-	def draw_camera (sacred, image):
+	def draw_camera (sacred, image, spixels):
 		pixels   = image.load()
 
 		lines = []
@@ -43,20 +43,26 @@ def proc_camera (manager_dict, sacred):
 			for deq_line in deq:
 				pix_count = 0
 				for l,r in sacred.get_sheets()[sheet_count]:
-					sacred.set_pixel(l, deq_line[pix_count])
-					sacred.set_pixel(r, deq_line[pix_count])
+					spixels[l] = deq_line[pix_count]
+					spixels[r] = deq_line[pix_count]
 					pix_count += 1
 
 				sheet_count += 1
-			sacred.bow(0)
+		sacred.set_pixels(spixels)
+		sacred.bow()
 
 	try:
+		count = 1
+		start = time()
+		spixels = [(0, 0, 0) for x in range(392)]
 		while True:
 			if manager_dict['has_light']:
 				""" It has been 5 seconds, is there still a light source? """
 				sacred.set_renderable(False)
 				if manager_dict['image'] != 0:
-					draw_camera(sacred, manager_dict['image'])
+					print count / (time() - start)
+					draw_camera(sacred, manager_dict['image'], spixels)
+					count += 1
 			else:
 				sacred.set_renderable(True)
 				sleep(1)
@@ -173,8 +179,7 @@ def thread_control (d):
 
 	x = 1
 	while True:
-		img = cam.getImage().flipVertical()
-
+		img = cam.getImage()
 		h, l, s = img.toHLS().splitChannels()
 		l = l.threshold(200)
 
@@ -205,7 +210,7 @@ bm.start()
 sacred = bm.DoorwayEffects()
 
 manager  = multiprocessing.Manager()
-d = manager.dict({'has_light' : False, 'image' : 0, 'cam_timer' : 0, 'ani_timer' : 5})
+d = manager.dict({'has_light' : False, 'image' : 0})
 
 camera = multiprocessing.Process(name="sacred_camera",target=proc_camera, args=(d, sacred, ))
 camera.daemon = True
