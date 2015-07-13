@@ -14,7 +14,12 @@ from multiprocessing.managers import BaseManager
 
 from doorway.doorway import Doorway, DoorwayEffects
 
+print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Starting Camera"
+
 cam = Camera(0, threaded=False, prop_set={"width":128, "height":96})
+
+print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Camera Started"
+
 # display = Display((640, 480))
 
 def proc_camera (manager_dict, sacred):
@@ -70,15 +75,15 @@ def proc_camera (manager_dict, sacred):
 
 
 def proc_animation (manager_dict, sacred):
-	where = [0]
+	where = [0] # Why is this a list? Because memory that's why. Look it up.
 
 	""" 
 	p - a list that contains effects for the presentation state
 	check DoorwayEffects for a list of functions 
 	"""
 	p = [
-		{'images' : ['doorway/res/stripes/colorfuls/', 0.02]},
-		{'images' : ['doorway/res/circles/', 0.01]},
+		{'images' : ['doorway/res/stripes/colorfuls/', 0.01]},
+		{'images' : ['doorway/res/circles/', 0.001]},
 		{'images' : ['doorway/res/stripes/', 0.01]},
 		{'rainbow_FtoB' : [ 0.01 ] },
 		{'rainbow_BtoF' : [ 0.01 ] },
@@ -92,10 +97,10 @@ def proc_animation (manager_dict, sacred):
 		{'strobe_FtoB' : [] },
 		]
 
-	[p.append({'images' : ['doorway/res/elements/water/', 0.05]}) for _ in range(1)]
-	[p.append({'images' : ['doorway/res/elements/fire/', 0.05]}) for _ in range(1)]
+	[p.append({'images' : ['doorway/res/elements/water/', 0.01]}) for _ in range(1)]
+	[p.append({'images' : ['doorway/res/elements/fire/', 0.01]}) for _ in range(1)]
 
-	[p.append({'picture' : ['doorway/res/circles/colorfuls/{0}.jpg'.format(x), 0.02]}) for x in range(1,8)]
+	[p.append({'picture' : ['doorway/res/circles/colorfuls/{0}.jpg'.format(x), 0.01]}) for x in range(1,8)]
 
 	[p.append({'swipe_down' : [Doorway.rand_color()]}) for _ in range(5)]
 	[p.append({'swipe_up' : [Doorway.rand_color()]}) for _ in range(5)]
@@ -174,8 +179,9 @@ def thread_control (d):
 	signal.signal(signal.SIGTERM, sigterm_handler)
 	signal.signal(signal.SIGINT, sigterm_handler)
 
-	x = 1
 	while True:
+		b_color = 1
+
 		img = cam.getImage()
 		h, l, s = img.toHLS().splitChannels()
 		l = l.threshold(200)
@@ -185,8 +191,11 @@ def thread_control (d):
 			mask = SimpleCV.Image(img.size())
 
 			for blob in blobs:
-				mask.drawCircle(blob.centroid(), 15, color=Doorway.nog_color_wheel(x), thickness=-1)
-			x += 1
+				if b_color > 230:
+					b_color = 1
+
+				mask.drawCircle(blob.centroid(), 15, color=Doorway.nog_color_wheel(b_color), thickness=-1)
+				b_color += 20
 
 			mask = mask.applyLayers()
 			mask = mask.flipVertical().flipHorizontal().rotate(90).scale(28, 7)
@@ -201,9 +210,7 @@ def thread_control (d):
 
 		del img
 
-		if x > 230:
-			x = 1
-
+# Proxy the DoorwayEffects class to the main process's daemonic children
 bm = BaseManager()
 bm.register('DoorwayEffects', DoorwayEffects)
 bm.start()
@@ -212,12 +219,24 @@ sacred = bm.DoorwayEffects()
 manager  = multiprocessing.Manager()
 d = manager.dict({'has_light' : False, 'image' : 0})
 
+print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Init proc_camera"
+
 camera = multiprocessing.Process(name="sacred_camera",target=proc_camera, args=(d, sacred, ))
 camera.daemon = True
 camera.start()
 
+print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Started proc_camera"
+
+
+print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Init proc_animation"
+
 animation = multiprocessing.Process(name="sacred_animations", target=proc_animation, args=(d, sacred, ))
 animation.daemon = True
 animation.start()
+
+print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Started proc_animation"
+
+
+print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Init control, running..."
 
 thread_control(d)
