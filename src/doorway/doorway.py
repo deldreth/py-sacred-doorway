@@ -57,7 +57,7 @@ class Doorway (object):
 		return self.image
 
 	def has_image(self):
-		if not self.image:
+		if len(self.image) > 0:
 			return False
 
 		return True

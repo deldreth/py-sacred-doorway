@@ -7,6 +7,7 @@ from time import sleep, time
 from PIL import Image
 
 import multiprocessing
+import numpy
 
 from multiprocessing.managers import BaseManager
 
@@ -21,8 +22,8 @@ def proc_camera (manager_dict, sacred):
 	unthreaded buffer an image from the camera and display.
 	"""
 
-	def draw_camera (sacred):
-		pilImage = sacred.get_image().resize((28, 7))
+	def draw_camera (sacred, image):
+		pilImage = Image.fromarray(image)
 		pixels   = pilImage.load()
 
 		lines = []
@@ -53,8 +54,7 @@ def proc_camera (manager_dict, sacred):
 		if manager_dict['has_light']:
 			""" It has been 5 seconds, is there still a light source? """
 			sacred.set_renderable(False)
-			if sacred.has_image:
-				draw_camera(sacred)
+			draw_camera(sacred, manager_dict['image'])
 		else:
 			sacred.set_renderable(True)
 			sleep(1)
@@ -186,10 +186,11 @@ def thread_control (d, doorway):
 
 				mask = mask.applyLayers()
 				mask = mask.flipHorizontal()
+				mask = mask.scale(28, 7)
 				#mask.save(display)
 
-				# d['image'] = mask.getNumpy()
-				doorway.set_image(mask.getPIL())
+				d['image'] = mask.getNumpy()
+				# doorway.set_image(mask.getNumpy())
 
 				d['has_light'] = True
 				# d['ani_timer'] = 0
@@ -197,7 +198,8 @@ def thread_control (d, doorway):
 				# if not d['cam_timer']:
 				# 	d['cam_timer'] = time()
 				sleep(0.01)
-		except:
+		except Exception as e:
+			print e
 			pass
 		
 		if not blobs:
