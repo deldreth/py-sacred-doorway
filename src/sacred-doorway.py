@@ -21,8 +21,8 @@ def proc_camera (manager_dict, sacred):
 	unthreaded buffer an image from the camera and display.
 	"""
 
-	def draw_camera (sacred):
-		pilImage = sacred.get_image().resize((28, 7))
+	def draw_camera (sacred, image):
+		pilImage = image.rotate(90).resize((28, 7))
 		pixels   = pilImage.load()
 
 		lines = []
@@ -53,8 +53,8 @@ def proc_camera (manager_dict, sacred):
 		if manager_dict['has_light']:
 			""" It has been 5 seconds, is there still a light source? """
 			sacred.set_renderable(False)
-			if sacred.has_image:
-				draw_camera(sacred)
+			if manager_dict['image'] != 0:
+				draw_camera(sacred, manager_dict['image'])
 		else:
 			sacred.set_renderable(True)
 			sleep(1)
@@ -141,13 +141,14 @@ def proc_animation (manager_dict, sacred):
 
 	while True:
 		if not manager_dict['has_light']:
+			print "animating"
 			draw_animation(sacred)
 		else:
 			sleep(1)
 
 
 
-def thread_control (d, doorway):
+def thread_control (d):
 	"""
 	Toggling state THREAD... if light is detected global manager dictionay will be updated, other processes respond accordingly.
 
@@ -158,47 +159,41 @@ def thread_control (d, doorway):
 
 	x = 1
 	while True:
-		blobs = 0
+		img = cam.getImage().flipVertical()
 
-		try:
-			img = cam.getImage().flipVertical()
+		h, l, s = img.toHLS().splitChannels()
+		l = l.threshold(200)
 
-			h, l, s = img.toHLS().splitChannels()
-			l = l.threshold(200)
+		# blobs = l.findBlobs(150, minsize=5) # For a capture, like, 640 x 480
 
-			# blobs = l.findBlobs(150, minsize=5) # For a capture, like, 640 x 480
+		blobs = l.findBlobs(minsize=5)
+		if blobs:
+			mask = SimpleCV.Image(img.size())
 
-			blobs = l.findBlobs(minsize=5)
-			if blobs:
-				mask = SimpleCV.Image(img.size())
+			for blob in blobs:
+				cx, cy = blob.centroid()
+				# mask.drawRectangle(cx-20, cy-30, 20, 20, color=Doorway.color_wheel(x+20), width=0)
+				# mask.drawRectangle(cx, cy-40, 20, 40, color=Doorway.color_wheel(x), width=0)
+				# mask.drawRectangle(cx+20, cy-30, 20, 20, color=Doorway.color_wheel(x+20), width=0)
+				mask.drawCircle((cx, cy), 15, color=Doorway.nog_color_wheel(x), thickness=-1)
+				# mask.drawCircle((cx + 20, cy), 10, color=Doorway.color_wheel(x+5), thickness=-1)
+				# mask.drawCircle((cx - 20, cy), 10, color=Doorway.color_wheel(x+10), thickness=-1)
+				# mask.drawCircle((cx, cy+10), 10, color=Doorway.color_wheel(x+15), thickness=-1)
+				# mask.drawCircle((cx, cy-10), 10, color=Doorway.color_wheel(x+20), thickness=-1)
+			x += 1
 
-				for blob in blobs:
-					cx, cy = blob.centroid()
-					# mask.drawRectangle(cx-20, cy-30, 20, 20, color=Doorway.color_wheel(x+20), width=0)
-					# mask.drawRectangle(cx, cy-40, 20, 40, color=Doorway.color_wheel(x), width=0)
-					# mask.drawRectangle(cx+20, cy-30, 20, 20, color=Doorway.color_wheel(x+20), width=0)
-					mask.drawCircle((cx, cy), 15, color=Doorway.nog_color_wheel(x), thickness=-1)
-					# mask.drawCircle((cx + 20, cy), 10, color=Doorway.color_wheel(x+5), thickness=-1)
-					# mask.drawCircle((cx - 20, cy), 10, color=Doorway.color_wheel(x+10), thickness=-1)
-					# mask.drawCircle((cx, cy+10), 10, color=Doorway.color_wheel(x+15), thickness=-1)
-					# mask.drawCircle((cx, cy-10), 10, color=Doorway.color_wheel(x+20), thickness=-1)
-				x += 1
+			mask = mask.applyLayers()
+			mask = mask.flipHorizontal()
+			#mask.save(display)
 
-				mask = mask.applyLayers()
-				mask = mask.flipHorizontal()
-				#mask.save(display)
+			d['image'] = mask.getPIL()
 
-				# d['image'] = mask.getNumpy()
-				doorway.set_image(mask.getPIL())
+			d['has_light'] = True
+			# d['ani_timer'] = 0
 
-				d['has_light'] = True
-				# d['ani_timer'] = 0
-
-				# if not d['cam_timer']:
-				# 	d['cam_timer'] = time()
-				sleep(0.01)
-		except:
-			pass
+			# if not d['cam_timer']:
+			# 	d['cam_timer'] = time()
+			sleep(0.01)
 		
 		if not blobs:
 			d['has_light'] = False
@@ -227,4 +222,4 @@ animation = multiprocessing.Process(target=proc_animation, args=(d, sacred, ))
 animation.daemon = True
 animation.start()
 
-thread_control(d, sacred)
+thread_control(d)
