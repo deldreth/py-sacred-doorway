@@ -7,13 +7,14 @@ from time import sleep, time
 from PIL import Image
 
 import multiprocessing
-import numpy
+import signal, sys
+import datetime
 
 from multiprocessing.managers import BaseManager
 
 from doorway.doorway import Doorway, DoorwayEffects
 
-cam = Camera(0, prop_set={"width":128, "height":96}) # Threaded by default, and boy if it doesn't freak everything out. Something something... multiple processes grabbing thread data at a time, wooo
+cam = Camera(0, threaded=False, prop_set={"width":128, "height":96})
 #display = Display((640, 480))
 
 def proc_camera (manager_dict, sacred):
@@ -49,15 +50,18 @@ def proc_camera (manager_dict, sacred):
 				sheet_count += 1
 			sacred.bow(0)
 
-	while True:
-		if manager_dict['has_light']:
-			""" It has been 5 seconds, is there still a light source? """
-			sacred.set_renderable(False)
-			if manager_dict['image'] != 0:
-				draw_camera(sacred, manager_dict['image'])
-		else:
-			sacred.set_renderable(True)
-			sleep(1)
+	try:
+		while True:
+			if manager_dict['has_light']:
+				""" It has been 5 seconds, is there still a light source? """
+				sacred.set_renderable(False)
+				if manager_dict['image'] != 0:
+					draw_camera(sacred, manager_dict['image'])
+			else:
+				sacred.set_renderable(True)
+				sleep(1)
+	except KeyboardInterrupt:
+		pass
 
 
 
@@ -140,12 +144,14 @@ def proc_animation (manager_dict, sacred):
 				if getattr(sacred, key)(*val):
 					return
 
-	while True:
-		if not manager_dict['has_light']:
-			print "animating"
-			draw_animation(sacred)
-		else:
-			sleep(1)
+	try:
+		while True:
+			if not manager_dict['has_light']:
+				draw_animation(sacred)
+			else:
+				sleep(1)
+	except KeyboardInterrupt:
+		pass
 
 
 
@@ -158,6 +164,13 @@ def thread_control (d):
 
 	global cam
 
+	def sigterm_handler (signal_no, frame):
+		print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), signal_no, "received, exitting."
+		sys.exit(0)	
+
+	signal.signal(signal.SIGTERM, sigterm_handler)
+	signal.signal(signal.SIGINT, sigterm_handler)
+
 	x = 1
 	while True:
 		img = cam.getImage().flipVertical()
@@ -165,22 +178,12 @@ def thread_control (d):
 		h, l, s = img.toHLS().splitChannels()
 		l = l.threshold(200)
 
-		# blobs = l.findBlobs(150, minsize=5) # For a capture, like, 640 x 480
-
 		blobs = l.findBlobs(minsize=5)
 		if blobs:
 			mask = SimpleCV.Image(img.size())
 
 			for blob in blobs:
-				cx, cy = blob.centroid()
-				# mask.drawRectangle(cx-20, cy-30, 20, 20, color=Doorway.color_wheel(x+20), width=0)
-				# mask.drawRectangle(cx, cy-40, 20, 40, color=Doorway.color_wheel(x), width=0)
-				# mask.drawRectangle(cx+20, cy-30, 20, 20, color=Doorway.color_wheel(x+20), width=0)
-				mask.drawCircle((cx, cy), 15, color=Doorway.nog_color_wheel(x), thickness=-1)
-				# mask.drawCircle((cx + 20, cy), 10, color=Doorway.color_wheel(x+5), thickness=-1)
-				# mask.drawCircle((cx - 20, cy), 10, color=Doorway.color_wheel(x+10), thickness=-1)
-				# mask.drawCircle((cx, cy+10), 10, color=Doorway.color_wheel(x+15), thickness=-1)
-				# mask.drawCircle((cx, cy-10), 10, color=Doorway.color_wheel(x+20), thickness=-1)
+				mask.drawCircle(blob.centroid(), 15, color=Doorway.color_wheel(x), thickness=-1)
 			x += 1
 
 			mask = mask.applyLayers()
@@ -189,17 +192,8 @@ def thread_control (d):
 			d['image'] = mask.getPIL()
 
 			d['has_light'] = True
-			# d['ani_timer'] = 0
-
-			# if not d['cam_timer']:
-			# 	d['cam_timer'] = time()
-			sleep(0.01)
 		else:
 			d['has_light'] = False
-			# d['cam_timer'] = 0
-
-			# if not d['ani_timer']:
-			# 	d['ani_timer'] = time()
 			sleep(1)
 
 		if x > 230:
@@ -213,11 +207,11 @@ sacred = bm.DoorwayEffects()
 manager  = multiprocessing.Manager()
 d = manager.dict({'has_light' : False, 'image' : 0, 'cam_timer' : 0, 'ani_timer' : 5})
 
-camera = multiprocessing.Process(target=proc_camera, args=(d, sacred, ))
+camera = multiprocessing.Process(name="sacred_camera",target=proc_camera, args=(d, sacred, ))
 camera.daemon = True
 camera.start()
 
-animation = multiprocessing.Process(target=proc_animation, args=(d, sacred, ))
+animation = multiprocessing.Process(name="sacred_animations", target=proc_animation, args=(d, sacred, ))
 animation.daemon = True
 animation.start()
 
