@@ -26,9 +26,9 @@ def proc_camera (manager_dict, sacred):
 		pixels   = image.load()
 
 		lines = []
-		for y in range(pilImage.size[1]):
+		for y in range(image.size[1]):
 			xs = []
-			for x in range(pilImage.size[0]):
+			for x in range(image.size[0]):
 				xs.append(pixels[x, y])
 
 			lines.append(xs)
