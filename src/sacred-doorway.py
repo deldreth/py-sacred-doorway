@@ -15,7 +15,7 @@ from multiprocessing.managers import BaseManager
 from doorway.doorway import Doorway, DoorwayEffects
 
 cam = Camera(0, threaded=False, prop_set={"width":128, "height":96})
-#display = Display((640, 480))
+# display = Display((640, 480))
 
 def proc_camera (manager_dict, sacred):
 	"""
@@ -48,21 +48,18 @@ def proc_camera (manager_dict, sacred):
 					pix_count += 1
 
 				sheet_count += 1
+
 		sacred.set_pixels(spixels)
-		sacred.bow()
+		sacred.bow(0)
 
 	try:
-		count = 1
-		start = time()
 		spixels = [(0, 0, 0) for x in range(392)]
 		while True:
 			if manager_dict['has_light']:
 				""" It has been 5 seconds, is there still a light source? """
 				sacred.set_renderable(False)
 				if manager_dict['image'] != 0:
-					print count / (time() - start)
 					draw_camera(sacred, manager_dict['image'], spixels)
-					count += 1
 			else:
 				sacred.set_renderable(True)
 				sleep(1)
@@ -188,11 +185,12 @@ def thread_control (d):
 			mask = SimpleCV.Image(img.size())
 
 			for blob in blobs:
-				mask.drawCircle(blob.centroid(), 15, color=Doorway.color_wheel(x), thickness=-1)
+				mask.drawCircle(blob.centroid(), 15, color=Doorway.nog_color_wheel(x), thickness=-1)
 			x += 1
 
 			mask = mask.applyLayers()
-			mask = mask.flipHorizontal().rotate(90).scale(28, 7)
+			mask = mask.flipVertical().flipHorizontal().rotate(90).scale(28, 7)
+			# mask.save(display)
 
 			d['image'] = mask.getPIL()
 
@@ -200,6 +198,8 @@ def thread_control (d):
 		else:
 			d['has_light'] = False
 			sleep(1)
+
+		del img
 
 		if x > 230:
 			x = 1

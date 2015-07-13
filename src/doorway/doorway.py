@@ -44,6 +44,7 @@ class Doorway (object):
 	# Write the pixel state to the client
 	def bow (self, tsleep=0):
 		self.client.put_pixels(self.pixels, 0)
+		sleep(tsleep)
 
 	def clear (self):
 		self.pixels = [(0, 0, 0) for x in range(392)]
