@@ -185,7 +185,6 @@ def thread_control (d):
 
 			mask = mask.applyLayers()
 			mask = mask.flipHorizontal()
-			#mask.save(display)
 
 			d['image'] = mask.getPIL()
 
@@ -222,8 +221,4 @@ animation = multiprocessing.Process(target=proc_animation, args=(d, sacred, ))
 animation.daemon = True
 animation.start()
 
-<<<<<<< HEAD
 thread_control(d)
-=======
-thread_control(d, sacred)
->>>>>>> 81d8755e92050f1f3206bad6a06fa9e026956485
