@@ -7,6 +7,7 @@ from time import sleep, time
 from PIL import Image
 
 import multiprocessing
+import numpy
 
 from multiprocessing.managers import BaseManager
 
@@ -194,8 +195,7 @@ def thread_control (d):
 			# if not d['cam_timer']:
 			# 	d['cam_timer'] = time()
 			sleep(0.01)
-		
-		if not blobs:
+		else:
 			d['has_light'] = False
 			# d['cam_timer'] = 0
 
@@ -222,4 +222,8 @@ animation = multiprocessing.Process(target=proc_animation, args=(d, sacred, ))
 animation.daemon = True
 animation.start()
 
+<<<<<<< HEAD
 thread_control(d)
+=======
+thread_control(d, sacred)
+>>>>>>> 81d8755e92050f1f3206bad6a06fa9e026956485
