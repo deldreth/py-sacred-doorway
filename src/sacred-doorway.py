@@ -70,11 +70,8 @@ def proc_animation (manager_dict, sacred):
 	check DoorwayEffects for a list of functions 
 	"""
 	p = [
-		{'images' : ['doorway/res/chakras/', 0.01]},
-		{'images' : ['doorway/res/chakras/vectors/', 0.01]},
-		{'images' : ['doorway/res/stripes/colorfuls/', 0.01]},
+		{'images' : ['doorway/res/stripes/colorfuls/', 0.02]},
 		{'images' : ['doorway/res/circles/', 0.01]},
-		{'images' : ['doorway/res/geometric/', 0.01]},
 		{'images' : ['doorway/res/stripes/', 0.01]},
 		{'rainbow_FtoB' : [ 0.01 ] },
 		{'rainbow_BtoF' : [ 0.01 ] },
@@ -96,14 +93,20 @@ def proc_animation (manager_dict, sacred):
 	[p.append({'swipe_down' : [Doorway.rand_color()]}) for _ in range(5)]
 	[p.append({'swipe_up' : [Doorway.rand_color()]}) for _ in range(5)]
 
-	# for _ in range(20):
-	# 	p.append({'wipe_down' : [random.randrange(1,8), (random.randrange(255), random.randrange(255), random.randrange(255))]})
-	# 	p.append({'wipe_up' : [random.randrange(1,8), (random.randrange(255), random.randrange(255), random.randrange(255))]})
+	for _ in range(20):
+		p.append({'wipe_down' : [random.randrange(1,8), (random.randrange(255), random.randrange(255), random.randrange(255))]})
+		p.append({'wipe_up' : [random.randrange(1,8), (random.randrange(255), random.randrange(255), random.randrange(255))]})
 
+	[p.append({'picture' : ['doorway/res/chakras/{0}.jpg'.format(x), 0.1]})            for x in range(1, 8)]
+	[p.append({'picture' : ['doorway/res/chakras/vectors/{0}.jpg'.format(x), 0.1]})    for x in range(8)]
 	[p.append({'picture' : ['doorway/res/chakras/{0}.jpg'.format(x), 0.1]})            for x in range(1, 8)]
 	[p.append({'picture' : ['doorway/res/chakras/vectors/{0}.jpg'.format(x), 0.1]})    for x in range(8)]
 	[p.append({'picture' : ['doorway/res/circles/{0}.jpg'.format(x), 0.05]})           for x in range(1,10)]
 	[p.append({'picture' : ['doorway/res/circles/colorfuls/{0}.jpg'.format(x), 0.02]}) for x in range(1,8)]
+	[p.append({'picture' : ['doorway/res/circles/{0}.jpg'.format(x), 0.05]})           for x in range(1,10)]
+	[p.append({'picture' : ['doorway/res/circles/colorfuls/{0}.jpg'.format(x), 0.02]}) for x in range(1,8)]
+	[p.append({'picture' : ['doorway/res/stripes/{0}.jpg'.format(x), 0.01]})           for x in range(1,9)]
+	[p.append({'picture' : ['doorway/res/stripes/colorfuls/{0}.jpg'.format(x), 0.01]}) for x in range(1,6)]
 	[p.append({'picture' : ['doorway/res/stripes/{0}.jpg'.format(x), 0.01]})           for x in range(1,9)]
 	[p.append({'picture' : ['doorway/res/stripes/colorfuls/{0}.jpg'.format(x), 0.01]}) for x in range(1,6)]
 
@@ -115,15 +118,13 @@ def proc_animation (manager_dict, sacred):
 			(random.randrange(255), random.randrange(255), random.randrange(255)), 
 			(random.randrange(255), random.randrange(255), random.randrange(255))]})
 	
-	# for _ in range(2):
-	# 	p.append({'strobe_rainbow_FtoB' : []})
-	# 	p.append({'strobe_rainbow_BtoF' : []})
+	for _ in range(2):
+		p.append({'strobe_rainbow_FtoB' : []})
+		p.append({'strobe_rainbow_BtoF' : []})
 
-	# for _ in range(2):
-	# 	p.append({'rainbow_FtoB' : [0.01]})
-	# 	p.append({'rainbow_BtoF' : [0.01]})
-
-	random.shuffle(p)
+	for _ in range(2):
+		p.append({'rainbow_FtoB' : [0.01]})
+		p.append({'rainbow_BtoF' : [0.01]})
 
 	def draw_animation (sacred):
 		if where[0] == len(p) - 1:
