@@ -21,8 +21,8 @@ def proc_camera (manager_dict, sacred):
 	unthreaded buffer an image from the camera and display.
 	"""
 
-	def draw_camera (sacred, image):
-		pilImage = image.rotate(90).resize((28, 7))
+	def draw_camera (sacred):
+		pilImage = sacred.get_image().resize((28, 7))
 		pixels   = pilImage.load()
 
 		lines = []
@@ -53,8 +53,8 @@ def proc_camera (manager_dict, sacred):
 		if manager_dict['has_light']:
 			""" It has been 5 seconds, is there still a light source? """
 			sacred.set_renderable(False)
-			if manager_dict['image'] != 0:
-				draw_camera(sacred, manager_dict['image'])
+			if sacred.has_image:
+				draw_camera(sacred)
 		else:
 			sacred.set_renderable(True)
 			sleep(1)
@@ -147,7 +147,7 @@ def proc_animation (manager_dict, sacred):
 
 
 
-def thread_control (d):
+def thread_control (d, doorway):
 	"""
 	Toggling state THREAD... if light is detected global manager dictionay will be updated, other processes respond accordingly.
 
@@ -188,7 +188,8 @@ def thread_control (d):
 				mask = mask.flipHorizontal()
 				#mask.save(display)
 
-				d['image'] = mask.getPIL()
+				# d['image'] = mask.getNumpy()
+				doorway.set_image(mask.getPIL())
 
 				d['has_light'] = True
 				# d['ani_timer'] = 0
@@ -226,4 +227,4 @@ animation = multiprocessing.Process(target=proc_animation, args=(d, sacred, ))
 animation.daemon = True
 animation.start()
 
-thread_control(d)
+thread_control(d, sacred)

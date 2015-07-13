@@ -32,7 +32,7 @@ class Doorway (object):
 			self.sheets[s] = Sheet(s, self.pixels)
 
 		self.gamma = self.gamma_table()
-
+		self.image = 0
 		self.bow() # Go ahead and write empty state to opc
 
 	def put (self, sheet, red = 0, green = 0, blue = 0, rgb = (0, 0, 0)):
@@ -49,6 +49,18 @@ class Doorway (object):
 	def clear (self):
 		self.pixels = [(0, 0, 0) for x in range(392)]
 		self.bow()
+
+	def set_image(self, image):
+		self.image = image
+
+	def get_image(self):
+		return self.image
+
+	def has_image(self):
+		if not self.image:
+			return False
+
+		return True
 
 	def get_sheets(self):
 		return self.sheets
