@@ -23,8 +23,7 @@ def proc_camera (manager_dict, sacred):
 	"""
 
 	def draw_camera (sacred, image):
-		pilImage = image.rotate(90).resize((28, 7))
-		pixels   = pilImage.load()
+		pixels   = image.load()
 
 		lines = []
 		for y in range(pilImage.size[1]):
@@ -184,7 +183,7 @@ def thread_control (d):
 			x += 1
 
 			mask = mask.applyLayers()
-			mask = mask.flipHorizontal()
+			mask = mask.flipHorizontal().rotate(90).scale(28, 7)
 
 			d['image'] = mask.getPIL()
 
