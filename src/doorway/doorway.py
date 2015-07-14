@@ -32,8 +32,7 @@ class Doorway (object):
 	def put (self, sheet, red = 0, green = 0, blue = 0, rgb = (0, 0, 0)):
 		if rgb > (0, 0, 0):
 			red, green, blue = rgb
-
-		self.sheets[sheet].set(red, green, blue)
+		self.pixels = self.sheets[sheet].set(self.pixels, red, green, blue)
 
 	# Write the pixel state to the client
 	def bow (self, tsleep=0):
@@ -170,7 +169,7 @@ class DoorwayEffects (Doorway):
 			for sheet in reversed(range(1,8)):
 				if not self.renderable:
 					return True
-
+				
 				self.put(sheet, rgb=Doorway.color_wheel(color))
 				self.bow(tsleep)
 

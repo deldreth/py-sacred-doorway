@@ -37,10 +37,12 @@ class Sheet:
 		""" Returns the n index for the sheet (1-7) """
 		return self.__n
 
-	def set (self, red, green, blue):
+	def set (self, pixels, red, green, blue):
 		""" Sets the full sheet to (red, green, blue) """
-		self.p[self.__dims['tl']:self.__dims['bl']] = [(red, green, blue) for x in range(self.__l)]
-		self.p[self.__dims['tr']:self.__dims['br']] = [(red, green, blue) for x in range(self.__l)]	
+		pixels[self.__dims['tl']:self.__dims['bl']] = [(red, green, blue) for x in range(self.__l)]
+		pixels[self.__dims['tr']:self.__dims['br']] = [(red, green, blue) for x in range(self.__l)]	
+
+		return pixels
 
 	def dimension (self):
 		return self.__dims

@@ -20,7 +20,7 @@ cam = Camera(0, threaded=False, prop_set={"width":128, "height":96})
 
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Camera Started"
 
-# display = Display((640, 480))
+display = Display((640, 480))
 
 def proc_camera (manager_dict, sacred):
 	"""
@@ -97,29 +97,32 @@ def proc_animation (manager_dict, sacred):
 		{'strobe_FtoB' : [] },
 		]
 
-	[p.append({'images' : ['doorway/res/pokes/', 0.05, True]}) for _ in range(1)]
-	[p.append({'images' : ['doorway/res/elements/water/', 0.01]}) for _ in range(1)]
-	[p.append({'images' : ['doorway/res/elements/fire/', 0.01]}) for _ in range(1)]
-	[p.append({'images' : ['doorway/res/chakras/', 0.07, True]}) for _ in range(1)]
-	[p.append({'images' : ['doorway/res/circles/colorfuls/', 0.01, True]}) for _ in range(1)]
+	[p.append({'images' : ['doorway/res/pokes/', 0.05, True]}) for _ in range(5)]
+	[p.append({'images' : ['doorway/res/elements/water/', 0.01]}) for _ in range(5)]
+	[p.append({'images' : ['doorway/res/elements/fire/', 0.01]}) for _ in range(5)]
+	[p.append({'images' : ['doorway/res/chakras/', 0.07, True]}) for _ in range(5)]
+	[p.append({'images' : ['doorway/res/circles/colorfuls/', 0.01, True]}) for _ in range(5)]
 
-	[p.append({'swipe_down' : [Doorway.color_wheel(random.randrange(255))]}) for _ in range(5)]
-	[p.append({'swipe_up'   : [Doorway.color_wheel(random.randrange(255))]}) for _ in range(5)]
+	[p.append({'swipe_down' : [Doorway.color_wheel(random.randrange(255))]}) for _ in range(10)]
+	[p.append({'swipe_up'   : [Doorway.color_wheel(random.randrange(255))]}) for _ in range(10)]
 
 	for _ in range(20):
 		p.append({'wipe_down' : [random.randrange(1,8), (random.randrange(255), random.randrange(255), random.randrange(255))]})
 		p.append({'wipe_up'   : [random.randrange(1,8), (random.randrange(255), random.randrange(255), random.randrange(255))]})
 
+		p.append({'wipe_down' : [random.randrange(1,8), (0, 0, 0)]})
+		p.append({'wipe_up'   : [random.randrange(1,8), (0, 0, 0)]})
+
 	[p.append({'picture' : ['doorway/res/chakras/{0}.jpg'.format(x), 0.1]})            for x in range(1, 8)]
 	[p.append({'picture' : ['doorway/res/chakras/{0}.jpg'.format(x), 0.1]})            for x in range(1, 8)]
 	[p.append({'picture' : ['doorway/res/circles/{0}.jpg'.format(x), 0.05]})           for x in range(1,10)]
 	[p.append({'picture' : ['doorway/res/circles/colorfuls/{0}.jpg'.format(x), 0.02]}) for x in range(1,8)]
 	[p.append({'picture' : ['doorway/res/circles/{0}.jpg'.format(x), 0.05]})           for x in range(1,10)]
-	[p.append({'picture' : ['doorway/res/circles/colorfuls/{0}.jpg'.format(x), 0.02]}) for x in range(1,8)]
-	[p.append({'picture' : ['doorway/res/stripes/{0}.jpg'.format(x), 0.01]})           for x in range(1,9)]
-	[p.append({'picture' : ['doorway/res/stripes/colorfuls/{0}.jpg'.format(x), 0.01]}) for x in range(1,6)]
-	[p.append({'picture' : ['doorway/res/stripes/{0}.jpg'.format(x), 0.01]})           for x in range(1,9)]
-	[p.append({'picture' : ['doorway/res/stripes/colorfuls/{0}.jpg'.format(x), 0.01]}) for x in range(1,6)]
+	[p.append({'picture' : ['doorway/res/circles/colorfuls/{0}.jpg'.format(x), 0.05]}) for x in range(1,8)]
+	[p.append({'picture' : ['doorway/res/stripes/{0}.jpg'.format(x), 0.07]})           for x in range(1,9)]
+	[p.append({'picture' : ['doorway/res/stripes/colorfuls/{0}.jpg'.format(x), 0.07]}) for x in range(1,6)]
+	[p.append({'picture' : ['doorway/res/stripes/{0}.jpg'.format(x), 0.05]})           for x in range(1,9)]
+	[p.append({'picture' : ['doorway/res/stripes/colorfuls/{0}.jpg'.format(x), 0.05]}) for x in range(1,6)]
 
 	for _ in range(20):
 		p.append({'strobe_FtoB' : [5, 0.01, 
@@ -137,24 +140,29 @@ def proc_animation (manager_dict, sacred):
 		p.append({'rainbow_FtoB' : [0.07]})
 		p.append({'rainbow_BtoF' : [0.07]})
 
-	def draw_animation (sacred):
-		if where[0] == len(p) - 1:
-			random.shuffle(p)
+	random.shuffle(p)
+
+	def draw_animation (sacred, pres):
+		if where[0] == len(pres) - 1:
+			random.shuffle(pres)
 			where[0] = 0
 
-		for i, x in enumerate(p):
+		for i, x in enumerate(pres):
 			if i < where[0]:
 				continue
 
 			where[0] = i
+			
 			for key, val in x.iteritems():
 				if getattr(sacred, key)(*val):
 					return
 
+		sleep(0.1)
+
 	try:
 		while True:
 			if not manager_dict['has_light']:
-				draw_animation(sacred)
+				draw_animation(sacred, p)
 			else:
 				sleep(1)
 	except KeyboardInterrupt:
@@ -182,9 +190,9 @@ def thread_control (d):
 	while True:
 		img = cam.getImage()
 		h, l, s = img.toHLS().splitChannels()
-		l = l.threshold(150)
-
-		blobs = l.findBlobs(minsize=3)
+		l = l.threshold(145)
+		l.save(display)
+		blobs = l.findBlobs(minsize=2)
 		if blobs:
 			mask = SimpleCV.Image(img.size())
 
