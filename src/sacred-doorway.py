@@ -230,6 +230,9 @@ def thread_control (d):
 			sleep(1)
 
 def display_handles ():
+	global cam
+	global camera_running
+
 	@joystick.on(joystick.BUTTON)
 	def handle_press (pin):
 		global cam
@@ -282,4 +285,5 @@ print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Started proc_ani
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Init control, running..."
 
 display_handles()
+lcd.write('Running!')
 thread_control(d)
