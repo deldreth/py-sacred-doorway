@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from SimpleCV import *
-from SimpleCV.Display import *
+# from SimpleCV.Display import *
 from collections import deque
 from time import sleep, time
 from PIL import Image
@@ -20,7 +20,7 @@ cam = Camera(0, threaded=False, prop_set={"width":128, "height":96})
 
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Camera Started"
 
-display = Display((640, 480))
+# display = Display((640, 480))
 
 def proc_camera (manager_dict, sacred):
 	"""
@@ -191,7 +191,7 @@ def thread_control (d):
 		img = cam.getImage()
 		h, l, s = img.toHLS().splitChannels()
 		l = l.threshold(145)
-		l.save(display)
+		
 		blobs = l.findBlobs(minsize=2)
 		if blobs:
 			mask = SimpleCV.Image(img.size())
