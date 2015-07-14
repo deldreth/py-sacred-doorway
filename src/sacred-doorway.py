@@ -205,6 +205,7 @@ def thread_control (d):
 	blob_color = 1
 	while True:
 		print "Running thread control...", camera_running[0]
+
 		if camera_running[0]:
 			img = cam.getImage()
 			h, l, s = img.toHLS().splitChannels()
