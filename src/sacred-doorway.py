@@ -176,6 +176,7 @@ def proc_animation (manager_dict, sacred):
 		while True:
 			if not manager_dict['has_light']:
 				draw_animation(sacred, p)
+				sleep(1)
 			else:
 				sleep(1)
 	except KeyboardInterrupt:
@@ -294,5 +295,5 @@ try:
 	lcd.write('Running!')
 except:
 	pass
-	
+
 thread_control(d)
