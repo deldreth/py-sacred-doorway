@@ -16,7 +16,6 @@ import dot3k.backlight as backlight
 
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Starting Camera"
 
-global cam
 cam = Camera(0, threaded=False, prop_set={"width":128, "height":96})
 global camera_running
 camera_running = True
@@ -230,13 +229,11 @@ def thread_control (d):
 			d['has_light'] = False
 			sleep(1)
 
-def display_handles ():
-	global cam
+def display_handles (cam):
 	global camera_running
 
 	@joystick.on(joystick.BUTTON)
-	def handle_press (pin):
-		global cam
+	def handle_press (pin, cam):
 		global camera_running
 
 		lcd.clear()
@@ -285,6 +282,6 @@ print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Started proc_ani
 
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Init control, running..."
 
-display_handles()
+display_handles(cam)
 lcd.write('Running!')
 thread_control(d)
