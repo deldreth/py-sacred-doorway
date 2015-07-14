@@ -268,6 +268,8 @@ def handle_press (pin):
 	sleep(0.5)
 	print "Stopping camera..."
 	camera_running = False
+	camera.terminate()
+	camera.join()
 	lcd.clear()
 	lcd.write("Camera stopped...")
 	sleep(0.5)
