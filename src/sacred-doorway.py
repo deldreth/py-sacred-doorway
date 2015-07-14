@@ -17,6 +17,7 @@ import dot3k.backlight as backlight
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Starting Camera"
 
 cam = Camera(0, threaded=False, prop_set={"width":128, "height":96})
+global camera_running
 
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Camera Started"
 
@@ -178,7 +179,8 @@ def thread_control (d):
 	It will 'poll' every second to determine which process should be running
 	"""
 
-	global cam	
+	global cam
+	global camera_running
 
 	def sigterm_handler (signal_no, frame):
 		print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), signal_no, "received, exitting."
@@ -186,24 +188,6 @@ def thread_control (d):
 
 	signal.signal(signal.SIGTERM, sigterm_handler)
 	signal.signal(signal.SIGINT, sigterm_handler)
-
-	global camera_running
-	camera_running = True
-
-	@joystick.on(joystick.BUTTON)
-	def handle_press (pin):
-		global camera_running
-
-		lcd.clear()
-		lcd.write("Stopping camera...")
-		backlight.rgb(0, 0, 0)
-		sleep(0.5)
-		print "Stopping camera..."
-		camera_running = False
-		lcd.clear()
-		lcd.write("Camera stopped...")
-		sleep(0.5)
-		print "Camera stopped..."
 
 	blob_color = 1
 	while True:
@@ -272,5 +256,21 @@ print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Started proc_ani
 
 
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Init control, running..."
+
+camera_running = True
+@joystick.on(joystick.BUTTON)
+def handle_press (pin):
+	global camera_running
+
+	lcd.clear()
+	lcd.write("Stopping camera...")
+	backlight.rgb(0, 0, 0)
+	sleep(0.5)
+	print "Stopping camera..."
+	camera_running = False
+	lcd.clear()
+	lcd.write("Camera stopped...")
+	sleep(0.5)
+	print "Camera stopped..."
 
 thread_control(d)
