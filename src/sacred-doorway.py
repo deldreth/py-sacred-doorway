@@ -17,6 +17,7 @@ import dot3k.backlight as backlight
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Starting Camera"
 
 cam = Camera(0, threaded=False, prop_set={"width":128, "height":96})
+camera_running = True
 
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Camera Started"
 
@@ -261,7 +262,6 @@ print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Init control, ru
 lcd.write("Running!")
 thread_control(d)
 
-camera_running = True
 @joystick.on(joystick.BUTTON)
 def handle_press (pin):
 	lcd.clear()
