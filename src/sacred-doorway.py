@@ -10,9 +10,9 @@ from doorway.doorway import Doorway, DoorwayEffects
 import multiprocessing
 import signal, sys, os
 import datetime
-import dot3k.joystick as joystick
-import dot3k.lcd as lcd
-import dot3k.backlight as backlight
+# import dot3k.joystick as joystick
+# import dot3k.lcd as lcd
+# import dot3k.backlight as backlight
 
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Starting Camera"
 
