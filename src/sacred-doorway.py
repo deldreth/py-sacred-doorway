@@ -225,15 +225,18 @@ def thread_control (d):
 			del img
 			sleep(0.01)
 		else:
+			if cam:
+				del cam
+
 			print "Animating only..."
 			d['has_light'] = False
 			sleep(1)
 
-def display_handles (cam):
+def display_handles ():
 	global camera_running
 
 	@joystick.on(joystick.BUTTON)
-	def handle_press (pin, cam):
+	def handle_press (pin):
 		global camera_running
 
 		lcd.clear()
@@ -244,8 +247,6 @@ def display_handles (cam):
 		camera_running = False
 		camera.terminate()
 		camera.join()
-
-		del cam
 
 		lcd.clear()
 		lcd.write("Camera stopped...")
@@ -282,6 +283,6 @@ print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Started proc_ani
 
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Init control, running..."
 
-display_handles(cam)
+display_handles()
 lcd.write('Running!')
 thread_control(d)
