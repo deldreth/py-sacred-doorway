@@ -1,18 +1,18 @@
 #!/usr/bin/python
 
 from SimpleCV import *
-# from SimpleCV.Display import *
 from collections import deque
 from time import sleep, time
 from PIL import Image
+from multiprocessing.managers import BaseManager
+from doorway.doorway import Doorway, DoorwayEffects
 
 import multiprocessing
-import signal, sys
+import signal, sys, psutil
 import datetime
-
-from multiprocessing.managers import BaseManager
-
-from doorway.doorway import Doorway, DoorwayEffects
+import dot3k.joystick as joystick
+import dot3k.lcd as lcd
+import dot3k.backlight as backlight
 
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Starting Camera"
 
@@ -23,6 +23,7 @@ print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Camera Started"
 # display = Display((640, 480))
 
 def proc_camera (manager_dict, sacred):
+	print "Camera PID:", os.getpid()
 	"""
 	Camera handling PROCESS. If the manager dictionary says there is light...
 	unthreaded buffer an image from the camera and display.
@@ -68,6 +69,7 @@ def proc_camera (manager_dict, sacred):
 			else:
 				sacred.set_renderable(True)
 				sleep(1)
+
 	except KeyboardInterrupt:
 		pass
 
@@ -75,6 +77,8 @@ def proc_camera (manager_dict, sacred):
 
 
 def proc_animation (manager_dict, sacred):
+	print "Animation PID:", os.getpid()
+	
 	where = [0] # Why is this a list? Because memory that's why. Look it up.
 
 	""" 
@@ -178,6 +182,7 @@ def thread_control (d):
 	"""
 
 	global cam
+	global camera_running
 
 	def sigterm_handler (signal_no, frame):
 		print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), signal_no, "received, exitting."
@@ -188,35 +193,39 @@ def thread_control (d):
 
 	blob_color = 1
 	while True:
-		img = cam.getImage()
-		h, l, s = img.toHLS().splitChannels()
-		l = l.threshold(145)
-		
-		blobs = l.findBlobs(minsize=2)
-		if blobs:
-			mask = SimpleCV.Image(img.size())
-
-
-			for blob in blobs:
-				mask.drawCircle(blob.centroid(), 10, color=Doorway.color_wheel(blob_color), thickness=-1)
+		if camera_running:
+			img = cam.getImage()
+			h, l, s = img.toHLS().splitChannels()
+			l = l.threshold(145)
 			
-			blob_color += 1
+			blobs = l.findBlobs(minsize=2)
+			if blobs:
+				mask = SimpleCV.Image(img.size())
 
-			if blob_color > 255:
-				blob_color = 1
 
-			mask = mask.applyLayers()
-			mask = mask.flipVertical().flipHorizontal().rotate(90).scale(28, 7)
-			# mask.save(display)
+				for blob in blobs:
+					mask.drawCircle(blob.centroid(), 10, color=Doorway.color_wheel(blob_color), thickness=-1)
+				
+				blob_color += 1
 
-			d['image'] = mask.getPIL()
+				if blob_color > 255:
+					blob_color = 1
 
-			d['has_light'] = True
+				mask = mask.applyLayers()
+				mask = mask.flipVertical().flipHorizontal().rotate(90).scale(28, 7)
+				# mask.save(display)
+
+				d['image'] = mask.getPIL()
+
+				d['has_light'] = True
+			else:
+				d['has_light'] = False
+				sleep(1)
+
+			del img
 		else:
 			d['has_light'] = False
 			sleep(1)
-
-		del img
 
 # Proxy the DoorwayEffects class to the main process's daemonic children
 bm = BaseManager()
@@ -246,5 +255,18 @@ print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Started proc_ani
 
 
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Init control, running..."
+
+camera_running = True
+@joystick.on(joystick.BUTTON)
+def handle_press (pin):
+	lcd.clear()
+	lcd.write("Stopping camera...")
+	backlight.rgb(0, 0, 0)
+	print "Stopping camera..."
+	camera_running = False
+	camera.terminate()
+	lcd.clear()
+	lcd.write("Camera stopped...")
+	print "Camera stopped..."
 
 thread_control(d)
