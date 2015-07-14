@@ -235,26 +235,7 @@ def display_handles ():
 	global cam
 	global camera_running
 
-	@joystick.on(joystick.BUTTON)
-	def handle_press (pin):
-		global cam
-		global camera_running
 
-		lcd.clear()
-		lcd.write("Stopping camera...")
-		backlight.rgb(0, 0, 0)
-		sleep(0.5)
-		print "Stopping camera..."
-		camera_running = False
-		camera.terminate()
-		camera.join()
-
-		del cam
-
-		lcd.clear()
-		lcd.write("Camera stopped...")
-		sleep(0.5)
-		print "Camera stopped..."
 
 
 # Proxy the DoorwayEffects class to the main process's daemonic children
@@ -286,6 +267,26 @@ print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Started proc_ani
 
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Init control, running..."
 
-display_handles()
+@joystick.on(joystick.BUTTON)
+def handle_press (pin):
+	global cam
+	global camera_running
+
+	lcd.clear()
+	lcd.write("Stopping camera...")
+	backlight.rgb(0, 0, 0)
+	sleep(0.5)
+	print "Stopping camera..."
+	camera_running = False
+	camera.terminate()
+	camera.join()
+
+	del cam
+
+	lcd.clear()
+	lcd.write("Camera stopped...")
+	sleep(0.5)
+	print "Camera stopped..."
+	
 lcd.write('Running!')
 thread_control(d)
