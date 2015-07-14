@@ -10,9 +10,9 @@ from doorway.doorway import Doorway, DoorwayEffects
 import multiprocessing
 import signal, sys
 import datetime
-# import dot3k.joystick as joystick
-# import dot3k.lcd as lcd
-# import dot3k.backlight as backlight
+import dot3k.joystick as joystick
+import dot3k.lcd as lcd
+import dot3k.backlight as backlight
 
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Starting Camera"
 
@@ -189,19 +189,18 @@ def thread_control (d):
 	signal.signal(signal.SIGINT, sigterm_handler)
 
 	camera_running = True
-	# @joystick.on(joystick.BUTTON)
-	# def handle_press (pin):
-	# 	lcd.clear()
-	# 	lcd.write("Stopping camera...")
-	# 	backlight.rgb(0, 0, 0)
-	# 	sleep(0.5)
-	# 	print "Stopping camera..."
-	# 	camera_running = False
-	# 	# camera.terminate()
-	# 	lcd.clear()
-	# 	lcd.write("Camera stopped...")
-	# 	sleep(0.5)
-	# 	print "Camera stopped..."
+	@joystick.on(joystick.BUTTON)
+	def handle_press (pin):
+		lcd.clear()
+		lcd.write("Stopping camera...")
+		backlight.rgb(0, 0, 0)
+		sleep(0.5)
+		print "Stopping camera..."
+		camera_running = False
+		lcd.clear()
+		lcd.write("Camera stopped...")
+		sleep(0.5)
+		print "Camera stopped..."
 
 	blob_color = 1
 	while True:
