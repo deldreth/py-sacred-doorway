@@ -192,19 +192,19 @@ def thread_control (d):
 	signal.signal(signal.SIGTERM, sigterm_handler)
 	signal.signal(signal.SIGINT, sigterm_handler)
 
-	@joystick.on(joystick.BUTTON)
-	def handle_press (pin):
-		lcd.clear()
-		lcd.write("Stopping camera...")
-		backlight.rgb(0, 0, 0)
-		sleep(0.5)
-		print "Stopping camera..."
-		camera_running = False
-		# camera.terminate()
-		lcd.clear()
-		lcd.write("Camera stopped...")
-		sleep(0.5)
-		print "Camera stopped..."
+	# @joystick.on(joystick.BUTTON)
+	# def handle_press (pin):
+	# 	lcd.clear()
+	# 	lcd.write("Stopping camera...")
+	# 	backlight.rgb(0, 0, 0)
+	# 	sleep(0.5)
+	# 	print "Stopping camera..."
+	# 	camera_running = False
+	# 	# camera.terminate()
+	# 	lcd.clear()
+	# 	lcd.write("Camera stopped...")
+	# 	sleep(0.5)
+	# 	print "Camera stopped..."
 
 	blob_color = 1
 	while True:
