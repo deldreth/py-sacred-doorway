@@ -22,6 +22,7 @@ camera_running = True
 global cam
 try:
 	cam = Camera(0, threaded=False, prop_set={"width":128, "height":96})
+	cam.getImage()
 except:
 	camera_running = False
 
