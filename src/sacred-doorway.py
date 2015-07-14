@@ -16,11 +16,14 @@ import dot3k.backlight as backlight
 
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Starting Camera"
 
-global cam
-cam = Camera(0, threaded=False, prop_set={"width":128, "height":96})
-
 global camera_running
 camera_running = True
+
+global cam
+try:
+	cam = Camera(0, threaded=False, prop_set={"width":128, "height":96})
+except:
+	camera_running = False
 
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Camera Started"
 
@@ -242,13 +245,16 @@ sacred = bm.DoorwayEffects()
 manager  = multiprocessing.Manager()
 d = manager.dict({'has_light' : False, 'image' : 0})
 
-print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Init proc_camera"
+if camera_running:
+	print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Init proc_camera"
 
-camera = multiprocessing.Process(name="sacred_camera",target=proc_camera, args=(d, sacred, ))
-camera.daemon = True
-camera.start()
+	camera = multiprocessing.Process(name="sacred_camera",target=proc_camera, args=(d, sacred, ))
+	camera.daemon = True
+	camera.start()
 
-print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Started proc_camera"
+	print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Started proc_camera"
+else:
+	print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "No camera, proc_camera not started"
 
 
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Init proc_animation"
