@@ -187,6 +187,7 @@ def thread_control (d):
 	signal.signal(signal.SIGTERM, sigterm_handler)
 	signal.signal(signal.SIGINT, sigterm_handler)
 
+	global camera_running
 	camera_running = True
 
 	@joystick.on(joystick.BUTTON)
