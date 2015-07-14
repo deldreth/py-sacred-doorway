@@ -16,6 +16,7 @@ import dot3k.backlight as backlight
 
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Starting Camera"
 
+global cam
 cam = Camera(0, threaded=False, prop_set={"width":128, "height":96})
 global camera_running
 camera_running = True
