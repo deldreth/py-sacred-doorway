@@ -24,7 +24,6 @@ print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Camera Started"
 # display = Display((640, 480))
 
 def proc_camera (manager_dict, sacred):
-	print "Camera PID:", os.getpid()
 	"""
 	Camera handling PROCESS. If the manager dictionary says there is light...
 	unthreaded buffer an image from the camera and display.
@@ -78,8 +77,6 @@ def proc_camera (manager_dict, sacred):
 
 
 def proc_animation (manager_dict, sacred):
-	print "Animation PID:", os.getpid()
-	
 	where = [0] # Why is this a list? Because memory that's why. Look it up.
 
 	""" 
