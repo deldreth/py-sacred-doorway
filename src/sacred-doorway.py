@@ -18,6 +18,7 @@ print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Starting Camera"
 
 cam = Camera(0, threaded=False, prop_set={"width":128, "height":96})
 global camera_running
+camera_running = True
 
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Camera Started"
 
@@ -228,6 +229,29 @@ def thread_control (d):
 			d['has_light'] = False
 			sleep(1)
 
+def display_handles ():
+	@joystick.on(joystick.BUTTON)
+	def handle_press (pin):
+		global cam
+		global camera_running
+
+		lcd.clear()
+		lcd.write("Stopping camera...")
+		backlight.rgb(0, 0, 0)
+		sleep(0.5)
+		print "Stopping camera..."
+		camera_running = False
+		camera.terminate()
+		camera.join()
+
+		del cam
+
+		lcd.clear()
+		lcd.write("Camera stopped...")
+		sleep(0.5)
+		print "Camera stopped..."
+
+
 # Proxy the DoorwayEffects class to the main process's daemonic children
 bm = BaseManager()
 bm.register('DoorwayEffects', DoorwayEffects)
@@ -257,22 +281,5 @@ print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Started proc_ani
 
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Init control, running..."
 
-camera_running = True
-@joystick.on(joystick.BUTTON)
-def handle_press (pin):
-	global camera_running
-
-	lcd.clear()
-	lcd.write("Stopping camera...")
-	backlight.rgb(0, 0, 0)
-	sleep(0.5)
-	print "Stopping camera..."
-	camera_running = False
-	camera.terminate()
-	camera.join()
-	lcd.clear()
-	lcd.write("Camera stopped...")
-	sleep(0.5)
-	print "Camera stopped..."
-
+display_handles()
 thread_control(d)
