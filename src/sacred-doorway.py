@@ -188,7 +188,7 @@ def thread_control (d):
 	signal.signal(signal.SIGTERM, sigterm_handler)
 	signal.signal(signal.SIGINT, sigterm_handler)
 
-	camera_running = True
+	camera_running[0] = True
 	@joystick.on(joystick.BUTTON)
 	def handle_press (pin):
 		lcd.clear()
@@ -196,7 +196,7 @@ def thread_control (d):
 		backlight.rgb(0, 0, 0)
 		sleep(0.5)
 		print "Stopping camera..."
-		camera_running = False
+		camera_running[0] = False
 		lcd.clear()
 		lcd.write("Camera stopped...")
 		sleep(0.5)
@@ -204,8 +204,8 @@ def thread_control (d):
 
 	blob_color = 1
 	while True:
-		print "Running thread control...", True
-		if camera_running:
+		print "Running thread control...", camera_running[0]
+		if camera_running[0]:
 			img = cam.getImage()
 			h, l, s = img.toHLS().splitChannels()
 			l = l.threshold(145)
