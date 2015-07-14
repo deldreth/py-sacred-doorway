@@ -206,8 +206,6 @@ def thread_control (d):
 
 	blob_color = 1
 	while True:
-		global camera_running
-		
 		if camera_running:
 			print "Running thread control...", camera_running
 			img = cam.getImage()
