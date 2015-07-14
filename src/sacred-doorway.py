@@ -224,6 +224,7 @@ def thread_control (d):
 
 			del img
 		else:
+			print "Animating only..."
 			d['has_light'] = False
 			sleep(1)
 
