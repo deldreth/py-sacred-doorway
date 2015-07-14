@@ -8,7 +8,7 @@ from multiprocessing.managers import BaseManager
 from doorway.doorway import Doorway, DoorwayEffects
 
 import multiprocessing
-import signal, sys, psutil
+import signal, sys, os
 import datetime
 import dot3k.joystick as joystick
 import dot3k.lcd as lcd
