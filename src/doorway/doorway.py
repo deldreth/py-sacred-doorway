@@ -19,11 +19,6 @@ class Doorway (object):
 		7 : 0
 	}
 
-	gamma = bytearray(256)
-
-	# pixels  = [(0, 0, 0) for x in range(392)]
-	#client  = opc.Client("localhost:7890")
-
 	def __init__ (self, client = "localhost:7890"):
 		self.client = opc.Client(client)
 		self.pixels = [(0, 0, 0) for x in range(392)]
@@ -31,7 +26,6 @@ class Doorway (object):
 		for s in self.sheets:
 			self.sheets[s] = Sheet(s, self.pixels)
 
-		self.gamma = self.gamma_table()
 		self.image = 0
 		self.bow() # Go ahead and write empty state to opc
 
@@ -76,11 +70,11 @@ class Doorway (object):
 
 	@classmethod
 	def rand_color (self):
-		return (random.randrange(255), random.randrange(255), random.randrange(255))
+		return (random.randrange(150, 255), random.randrange(150, 255), random.randrange(150, 255))
 
 	@classmethod
-	def nog_color_wheel(self, value):
-		""" Given 0-255, make an rgb color without gamma correction """
+	def color_wheel(self, value):
+		""" Given 0-255, make an rgb color with gamma correction """
 		if value < 85:
 			return (value * 3, 255 - value * 3, 0)
 		elif value < 170:
@@ -89,24 +83,6 @@ class Doorway (object):
 		else:
 			value -= 170
 			return (0, value * 3, 255 - value * 3)
-
-	@classmethod
-	def color_wheel(self, value):
-		""" Given 0-255, make an rgb color with gamma correction """
-		if value < 85:
-			return (self.gamma[value * 3], self.gamma[255 - value * 3], 0)
-		elif value < 170:
-			value -= 85
-			return (self.gamma[255 - value * 3], 0, self.gamma[value * 3])
-		else:
-			value -= 170
-			return (0, self.gamma[value * 3], self.gamma[255 - value * 3])
-
-	def gamma_table (self):
-		for i in range(256):
-			Doorway.gamma[i] = int(pow(float(i) / 255.0, 2.7) * 255.0 + 0.5)
-
-		return Doorway.gamma
 
 
 
@@ -275,15 +251,19 @@ class DoorwayEffects (Doorway):
 			
 			self.bow(tsleep)
 
-	def images (self, path, tsleep=0.01):
+	def images (self, path, tsleep=0.01, square=False):
 		path = os.path.abspath(path)
 		imgs = []
 
 		for pic in sorted(os.listdir(path)):
 			if os.path.isfile(path+'/'+pic):
 				img = Image.open(path+'/'+pic)
-				img = img.resize((28, img.size[1])) # Scale width down to 28 px but leave height alone
-				#img = img.resize((28, 28))
+
+				height = img.size[1]
+				if square:
+					height = 28
+
+				img = img.resize((28, height)) # Scale width down to 28 px but leave height alone
 				imgs.append(img)
 
 				del img # Since we only really care about the pixel data, no sense leaving this around

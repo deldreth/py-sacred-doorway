@@ -82,9 +82,9 @@ def proc_animation (manager_dict, sacred):
 	check DoorwayEffects for a list of functions 
 	"""
 	p = [
-		{'images' : ['doorway/res/stripes/colorfuls/', 0.01]},
-		{'images' : ['doorway/res/circles/', 0.001]},
-		{'images' : ['doorway/res/stripes/', 0.01]},
+		{'images' : ['doorway/res/stripes/colorfuls/', 0.05, True]},
+		{'images' : ['doorway/res/circles/', 0.07, True]},
+		{'images' : ['doorway/res/stripes/', 0.07, True]},
 		{'rainbow_FtoB' : [ 0.01 ] },
 		{'rainbow_BtoF' : [ 0.01 ] },
 		{'wipe_down' : [ 1 ] },
@@ -97,22 +97,21 @@ def proc_animation (manager_dict, sacred):
 		{'strobe_FtoB' : [] },
 		]
 
+	[p.append({'images' : ['doorway/res/pokes/', 0.05, True]}) for _ in range(1)]
 	[p.append({'images' : ['doorway/res/elements/water/', 0.01]}) for _ in range(1)]
 	[p.append({'images' : ['doorway/res/elements/fire/', 0.01]}) for _ in range(1)]
+	[p.append({'images' : ['doorway/res/chakras/', 0.07, True]}) for _ in range(1)]
+	[p.append({'images' : ['doorway/res/circles/colorfuls/', 0.01, True]}) for _ in range(1)]
 
-	[p.append({'picture' : ['doorway/res/circles/colorfuls/{0}.jpg'.format(x), 0.01]}) for x in range(1,8)]
-
-	[p.append({'swipe_down' : [Doorway.rand_color()]}) for _ in range(5)]
-	[p.append({'swipe_up' : [Doorway.rand_color()]}) for _ in range(5)]
+	[p.append({'swipe_down' : [Doorway.color_wheel(random.randrange(255))]}) for _ in range(5)]
+	[p.append({'swipe_up'   : [Doorway.color_wheel(random.randrange(255))]}) for _ in range(5)]
 
 	for _ in range(20):
 		p.append({'wipe_down' : [random.randrange(1,8), (random.randrange(255), random.randrange(255), random.randrange(255))]})
-		p.append({'wipe_up' : [random.randrange(1,8), (random.randrange(255), random.randrange(255), random.randrange(255))]})
+		p.append({'wipe_up'   : [random.randrange(1,8), (random.randrange(255), random.randrange(255), random.randrange(255))]})
 
 	[p.append({'picture' : ['doorway/res/chakras/{0}.jpg'.format(x), 0.1]})            for x in range(1, 8)]
-	[p.append({'picture' : ['doorway/res/chakras/vectors/{0}.jpg'.format(x), 0.1]})    for x in range(8)]
 	[p.append({'picture' : ['doorway/res/chakras/{0}.jpg'.format(x), 0.1]})            for x in range(1, 8)]
-	[p.append({'picture' : ['doorway/res/chakras/vectors/{0}.jpg'.format(x), 0.1]})    for x in range(8)]
 	[p.append({'picture' : ['doorway/res/circles/{0}.jpg'.format(x), 0.05]})           for x in range(1,10)]
 	[p.append({'picture' : ['doorway/res/circles/colorfuls/{0}.jpg'.format(x), 0.02]}) for x in range(1,8)]
 	[p.append({'picture' : ['doorway/res/circles/{0}.jpg'.format(x), 0.05]})           for x in range(1,10)]
@@ -122,7 +121,7 @@ def proc_animation (manager_dict, sacred):
 	[p.append({'picture' : ['doorway/res/stripes/{0}.jpg'.format(x), 0.01]})           for x in range(1,9)]
 	[p.append({'picture' : ['doorway/res/stripes/colorfuls/{0}.jpg'.format(x), 0.01]}) for x in range(1,6)]
 
-	for _ in range(5):
+	for _ in range(20):
 		p.append({'strobe_FtoB' : [5, 0.01, 
 			(random.randrange(255), random.randrange(255), random.randrange(255)), 
 			(random.randrange(255), random.randrange(255), random.randrange(255))]})
@@ -130,13 +129,13 @@ def proc_animation (manager_dict, sacred):
 			(random.randrange(255), random.randrange(255), random.randrange(255)), 
 			(random.randrange(255), random.randrange(255), random.randrange(255))]})
 	
-	for _ in range(2):
-		p.append({'strobe_rainbow_FtoB' : []})
-		p.append({'strobe_rainbow_BtoF' : []})
+	for _ in range(10):
+		p.append({'strobe_rainbow_FtoB' : [0.05]})
+		p.append({'strobe_rainbow_BtoF' : [0.05]})
 
-	for _ in range(2):
-		p.append({'rainbow_FtoB' : [0.01]})
-		p.append({'rainbow_BtoF' : [0.01]})
+	for _ in range(10):
+		p.append({'rainbow_FtoB' : [0.07]})
+		p.append({'rainbow_BtoF' : [0.07]})
 
 	def draw_animation (sacred):
 		if where[0] == len(p) - 1:
@@ -179,23 +178,24 @@ def thread_control (d):
 	signal.signal(signal.SIGTERM, sigterm_handler)
 	signal.signal(signal.SIGINT, sigterm_handler)
 
+	blob_color = 1
 	while True:
-		b_color = 1
-
 		img = cam.getImage()
 		h, l, s = img.toHLS().splitChannels()
-		l = l.threshold(200)
+		l = l.threshold(150)
 
-		blobs = l.findBlobs(minsize=5)
+		blobs = l.findBlobs(minsize=3)
 		if blobs:
 			mask = SimpleCV.Image(img.size())
 
-			for blob in blobs:
-				if b_color > 230:
-					b_color = 1
 
-				mask.drawCircle(blob.centroid(), 15, color=Doorway.nog_color_wheel(b_color), thickness=-1)
-				b_color += 20
+			for blob in blobs:
+				mask.drawCircle(blob.centroid(), 10, color=Doorway.color_wheel(blob_color), thickness=-1)
+			
+			blob_color += 1
+
+			if blob_color > 255:
+				blob_color = 1
 
 			mask = mask.applyLayers()
 			mask = mask.flipVertical().flipHorizontal().rotate(90).scale(28, 7)
