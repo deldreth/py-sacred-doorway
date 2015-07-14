@@ -231,11 +231,6 @@ def thread_control (d):
 			d['has_light'] = False
 			sleep(1)
 
-def display_handles ():
-	global cam
-	global camera_running
-
-
 
 
 # Proxy the DoorwayEffects class to the main process's daemonic children
@@ -277,10 +272,9 @@ def handle_press (pin):
 	sleep(0.5)
 	print "Stopping camera..."
 	camera_running = False
+
 	camera.terminate()
 	camera.join()
-
-	del cam
 
 	lcd.clear()
 	lcd.write("Camera stopped...")
