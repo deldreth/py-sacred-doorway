@@ -269,7 +269,6 @@ print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Init control, ru
 
 @joystick.on(joystick.BUTTON)
 def handle_press (pin):
-	global cam
 	global camera_running
 
 	lcd.clear()
@@ -287,6 +286,6 @@ def handle_press (pin):
 	lcd.write("Camera stopped...")
 	sleep(0.5)
 	print "Camera stopped..."
-	
+
 lcd.write('Running!')
 thread_control(d)
