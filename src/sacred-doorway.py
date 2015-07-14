@@ -10,9 +10,13 @@ from doorway.doorway import Doorway, DoorwayEffects
 import multiprocessing
 import signal, sys
 import datetime
-import dot3k.joystick as joystick
-import dot3k.lcd as lcd
-import dot3k.backlight as backlight
+
+try:
+	import dot3k.joystick as joystick
+	import dot3k.lcd as lcd
+	import dot3k.backlight as backlight
+except:
+	print "Not running a pi? OK!"
 
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Starting Camera"
 
@@ -267,24 +271,28 @@ print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Started proc_ani
 
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Init control, running..."
 
-@joystick.on(joystick.BUTTON)
-def handle_press (pin):
-	global camera_running
+try:
+	@joystick.on(joystick.BUTTON)
+	def handle_press (pin):
+		global camera_running
 
-	lcd.clear()
-	lcd.write("Stopping camera...")
-	backlight.rgb(0, 0, 0)
-	sleep(0.5)
-	print "Stopping camera..."
-	camera_running = False
+		lcd.clear()
+		lcd.write("Stopping camera...")
+		backlight.rgb(0, 0, 0)
+		sleep(0.5)
+		print "Stopping camera..."
+		camera_running = False
 
-	camera.terminate()
-	camera.join()
+		camera.terminate()
+		camera.join()
 
-	lcd.clear()
-	lcd.write("Camera stopped...")
-	sleep(0.5)
-	print "Camera stopped..."
+		lcd.clear()
+		lcd.write("Camera stopped...")
+		sleep(0.5)
+		print "Camera stopped..."
 
-lcd.write('Running!')
+	lcd.write('Running!')
+except:
+	pass
+	
 thread_control(d)
