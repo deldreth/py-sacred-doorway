@@ -187,12 +187,12 @@ def thread_control (d):
 	signal.signal(signal.SIGTERM, sigterm_handler)
 	signal.signal(signal.SIGINT, sigterm_handler)
 
-	global camera_running
 	camera_running = True
 
 	@joystick.on(joystick.BUTTON)
 	def handle_press (pin):
 		global camera_running
+
 		lcd.clear()
 		lcd.write("Stopping camera...")
 		backlight.rgb(0, 0, 0)
@@ -205,41 +205,43 @@ def thread_control (d):
 		print "Camera stopped..."
 
 	blob_color = 1
-	while camera_running:
-		print "Running thread control...", camera_running
-		img = cam.getImage()
-		h, l, s = img.toHLS().splitChannels()
-		l = l.threshold(145)
-		
-		blobs = l.findBlobs(minsize=2)
-		if blobs:
-			mask = SimpleCV.Image(img.size())
-
-
-			for blob in blobs:
-				mask.drawCircle(blob.centroid(), 10, color=Doorway.color_wheel(blob_color), thickness=-1)
+	while True:
+		if camera_running:
+			print "Running thread control...", camera_running
+			img = cam.getImage()
+			h, l, s = img.toHLS().splitChannels()
+			l = l.threshold(145)
 			
-			blob_color += 1
+			blobs = l.findBlobs(minsize=2)
+			if blobs:
+				mask = SimpleCV.Image(img.size())
 
-			if blob_color > 255:
-				blob_color = 1
 
-			mask = mask.applyLayers()
-			mask = mask.flipVertical().flipHorizontal().rotate(90).scale(28, 7)
-			# mask.save(display)
+				for blob in blobs:
+					mask.drawCircle(blob.centroid(), 10, color=Doorway.color_wheel(blob_color), thickness=-1)
+				
+				blob_color += 1
 
-			d['image'] = mask.getPIL()
+				if blob_color > 255:
+					blob_color = 1
 
-			d['has_light'] = True
+				mask = mask.applyLayers()
+				mask = mask.flipVertical().flipHorizontal().rotate(90).scale(28, 7)
+				# mask.save(display)
+
+				d['image'] = mask.getPIL()
+
+				d['has_light'] = True
+			else:
+				d['has_light'] = False
+				sleep(1)
+
+			del img
+			sleep(0.01)
 		else:
+			print "Animating only..."
 			d['has_light'] = False
 			sleep(1)
-
-		del img
-		sleep(0.01)
-
-	print "Animating only..."
-	d['has_light'] = False
 
 # Proxy the DoorwayEffects class to the main process's daemonic children
 bm = BaseManager()
