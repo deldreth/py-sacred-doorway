@@ -258,6 +258,9 @@ print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Started proc_ani
 
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Init control, running..."
 
+lcd.write("Running!")
+thread_control(d)
+
 camera_running = True
 @joystick.on(joystick.BUTTON)
 def handle_press (pin):
@@ -272,5 +275,3 @@ def handle_press (pin):
 	lcd.write("Camera stopped...")
 	sleep(0.5)
 	print "Camera stopped..."
-
-thread_control(d)
