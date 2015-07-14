@@ -204,44 +204,41 @@ def thread_control (d):
 		print "Camera stopped..."
 
 	blob_color = 1
-	while True:
+	while camera_running:
 		print "Running thread control...", camera_running
+		img = cam.getImage()
+		h, l, s = img.toHLS().splitChannels()
+		l = l.threshold(145)
+		
+		blobs = l.findBlobs(minsize=2)
+		if blobs:
+			mask = SimpleCV.Image(img.size())
 
-		if camera_running:
-			img = cam.getImage()
-			h, l, s = img.toHLS().splitChannels()
-			l = l.threshold(145)
+
+			for blob in blobs:
+				mask.drawCircle(blob.centroid(), 10, color=Doorway.color_wheel(blob_color), thickness=-1)
 			
-			blobs = l.findBlobs(minsize=2)
-			if blobs:
-				mask = SimpleCV.Image(img.size())
+			blob_color += 1
 
+			if blob_color > 255:
+				blob_color = 1
 
-				for blob in blobs:
-					mask.drawCircle(blob.centroid(), 10, color=Doorway.color_wheel(blob_color), thickness=-1)
-				
-				blob_color += 1
+			mask = mask.applyLayers()
+			mask = mask.flipVertical().flipHorizontal().rotate(90).scale(28, 7)
+			# mask.save(display)
 
-				if blob_color > 255:
-					blob_color = 1
+			d['image'] = mask.getPIL()
 
-				mask = mask.applyLayers()
-				mask = mask.flipVertical().flipHorizontal().rotate(90).scale(28, 7)
-				# mask.save(display)
-
-				d['image'] = mask.getPIL()
-
-				d['has_light'] = True
-			else:
-				d['has_light'] = False
-				sleep(1)
-
-			del img
-			sleep(0.01)
+			d['has_light'] = True
 		else:
-			print "Animating only..."
 			d['has_light'] = False
 			sleep(1)
+
+		del img
+		sleep(0.01)
+
+	print "Animating only..."
+	d['has_light'] = False
 
 # Proxy the DoorwayEffects class to the main process's daemonic children
 bm = BaseManager()
