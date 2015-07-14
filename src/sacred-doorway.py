@@ -192,6 +192,7 @@ def thread_control (d):
 
 	@joystick.on(joystick.BUTTON)
 	def handle_press (pin):
+		global camera_running
 		lcd.clear()
 		lcd.write("Stopping camera...")
 		backlight.rgb(0, 0, 0)
