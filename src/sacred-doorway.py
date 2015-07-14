@@ -178,8 +178,7 @@ def thread_control (d):
 	It will 'poll' every second to determine which process should be running
 	"""
 
-	global cam
-	
+	global cam	
 
 	def sigterm_handler (signal_no, frame):
 		print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), signal_no, "received, exitting."
@@ -188,7 +187,8 @@ def thread_control (d):
 	signal.signal(signal.SIGTERM, sigterm_handler)
 	signal.signal(signal.SIGINT, sigterm_handler)
 
-	camera_running[0] = True
+	camera_running = True
+
 	@joystick.on(joystick.BUTTON)
 	def handle_press (pin):
 		lcd.clear()
@@ -196,7 +196,7 @@ def thread_control (d):
 		backlight.rgb(0, 0, 0)
 		sleep(0.5)
 		print "Stopping camera..."
-		camera_running[0] = False
+		camera_running = False
 		lcd.clear()
 		lcd.write("Camera stopped...")
 		sleep(0.5)
@@ -204,9 +204,9 @@ def thread_control (d):
 
 	blob_color = 1
 	while True:
-		print "Running thread control...", camera_running[0]
+		print "Running thread control...", camera_running
 
-		if camera_running[0]:
+		if camera_running:
 			img = cam.getImage()
 			h, l, s = img.toHLS().splitChannels()
 			l = l.threshold(145)
