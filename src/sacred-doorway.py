@@ -205,7 +205,7 @@ def thread_control (d):
 
 	blob_color = 1
 	while True:
-		print "Running thread control...", camera_running
+		print "Running thread control..."
 		if camera_running:
 			img = cam.getImage()
 			h, l, s = img.toHLS().splitChannels()
@@ -236,6 +236,7 @@ def thread_control (d):
 				sleep(1)
 
 			del img
+			sleep(0.01)
 		else:
 			print "Animating only..."
 			d['has_light'] = False
