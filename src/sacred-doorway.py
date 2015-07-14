@@ -8,7 +8,7 @@ from multiprocessing.managers import BaseManager
 from doorway.doorway import Doorway, DoorwayEffects
 
 import multiprocessing
-import signal, sys, os
+import signal, sys
 import datetime
 # import dot3k.joystick as joystick
 # import dot3k.lcd as lcd
@@ -17,7 +17,6 @@ import datetime
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Starting Camera"
 
 cam = Camera(0, threaded=False, prop_set={"width":128, "height":96})
-camera_running = True
 
 print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), "Camera Started"
 
@@ -180,7 +179,7 @@ def thread_control (d):
 	"""
 
 	global cam
-	global camera_running
+	
 
 	def sigterm_handler (signal_no, frame):
 		print datetime.datetime.now().strftime('%b %d, %G %I:%M%p--'), signal_no, "received, exitting."
@@ -189,6 +188,7 @@ def thread_control (d):
 	signal.signal(signal.SIGTERM, sigterm_handler)
 	signal.signal(signal.SIGINT, sigterm_handler)
 
+	camera_running = True
 	# @joystick.on(joystick.BUTTON)
 	# def handle_press (pin):
 	# 	lcd.clear()
