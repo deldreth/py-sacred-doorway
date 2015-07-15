@@ -222,7 +222,7 @@ def thread_control (d):
 					blob_color = 1
 
 				mask = mask.applyLayers()
-				mask = mask.flipVertical().flipHorizontal().rotate(90).scale(28, 7)
+				mask = mask.flipHorizontal().rotate(90).scale(28, 7)
 				# mask.save(display)
 
 				d['image'] = mask.getPIL()
