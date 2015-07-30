@@ -240,6 +240,7 @@ def thread_control (d):
 
 
 
+
 # Proxy the DoorwayEffects class to the main process's daemonic children
 bm = BaseManager()
 bm.register('DoorwayEffects', DoorwayEffects)
