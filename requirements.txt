@@ -1,7 +1,7 @@
 #install with "sudo pip -r install requirements.txt"
 numpy
 scipy
-PIL
+pillow
 ipython
 svgwrite
 SimpleCV
